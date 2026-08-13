@@ -33,7 +33,7 @@ export function demoCredentials(demo: DemoSlug): DemoCredentials {
   const manifestId = process.env[`${prefix}_MANIFEST_ID`] ?? '';
   if (!clientSecret || !manifestId) {
     throw new Error(
-      `${demo} is not configured: set ${prefix}_CLIENT_SECRET and ${prefix}_MANIFEST_ID (see .env.example)`
+      `${demo} is not configured: set ${prefix}_CLIENT_SECRET and ${prefix}_MANIFEST_ID (see .env.example)`,
     );
   }
   return { clientId, clientSecret, manifestId };

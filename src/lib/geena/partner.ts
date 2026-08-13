@@ -70,19 +70,19 @@ async function partnerGet<T>(
   demo: DemoSlug,
   ds: DemoSession,
   path: string,
-  accept: 'json'
+  accept: 'json',
 ): Promise<T>;
 async function partnerGet(
   demo: DemoSlug,
   ds: DemoSession,
   path: string,
-  accept: 'raw'
+  accept: 'raw',
 ): Promise<Response>;
 async function partnerGet<T>(
   demo: DemoSlug,
   ds: DemoSession,
   path: string,
-  accept: 'json' | 'raw'
+  accept: 'json' | 'raw',
 ): Promise<T | Response> {
   const call = async () => {
     const tokens = await liveTokens(demo, ds);
@@ -131,7 +131,7 @@ export function getSlotFile(
   ds: DemoSession,
   requestId: string,
   slotId: string,
-  fileId: string
+  fileId: string,
 ) {
   return partnerGet(demo, ds, `/requests/${requestId}/slots/${slotId}/files/${fileId}`, 'raw');
 }

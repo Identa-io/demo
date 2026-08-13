@@ -1,10 +1,27 @@
 import { headers } from 'next/headers';
 import { DEMO_SLUGS, DEMOS, type DemoSlug } from '@/lib/demos';
+import vinstManifest from '../../manifests/vinst.json';
+import resaManifest from '../../manifests/resa.json';
+import vagnManifest from '../../manifests/vagn.json';
+
+interface ManifestFile {
+  name: string;
+  slots: { label?: string }[];
+  subjects?: { label?: string }[];
+}
+
+const MANIFESTS: Record<DemoSlug, ManifestFile> = {
+  vinst: vinstManifest,
+  resa: resaManifest,
+  vagn: vagnManifest,
+};
 
 /**
- * The gallery: one page, three doors. On demo.test.geena.eu each card leads to the demo's own
- * subdomain — every partner is its own origin, and so is every demo. On a bare host (local dev)
- * the same routes work path-style.
+ * The gallery: one page, three doors. Each card is a CONNECTION RECORD — in Geena's world the
+ * ask is the identity, so the card shows an excerpt of the demo's actual manifest (imported from
+ * the same files the studio publishes). On demo.test.geena.eu each card leads to the demo's own
+ * subdomain — every partner is its own origin, and so is every demo; on a bare host the same
+ * routes work path-style.
  */
 export default async function Landing() {
   const host = (await headers()).get('host') ?? '';
@@ -39,8 +56,8 @@ export default async function Landing() {
             Your data, asked for properly.
           </h1>
           <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-[color:var(--muted)]">
-            Three fictional companies — a fund platform, a travel insurer, a car-rental firm —
-            each integrating Geena the way a real partner would. Use your real email: the consent
+            Three fictional companies — a fund platform, a travel insurer, a car-rental firm — each
+            integrating Geena the way a real partner would. Use your real email: the consent
             ceremony you will see is the real one.
           </p>
         </section>
@@ -48,6 +65,11 @@ export default async function Landing() {
         <section className="grid gap-6 pb-4 md:grid-cols-3">
           {DEMO_SLUGS.map((slug) => {
             const demo = DEMOS[slug];
+            const manifest = MANIFESTS[slug];
+            const asks = manifest.slots
+              .map((slot) => slot.label)
+              .filter((label): label is string => !!label);
+            const shown = asks.slice(0, 3);
             return (
               <a
                 key={slug}
@@ -72,6 +94,34 @@ export default async function Landing() {
                   <p className="mt-1.5 text-[13px] leading-relaxed text-[color:var(--muted)]">
                     {demo.scenario}
                   </p>
+
+                  {/* The ask IS the identity: an excerpt of the manifest this demo opens. */}
+                  <div className="mt-4 rounded-xl border border-[color:var(--line)] bg-[color:var(--bg)]/60 px-3.5 py-3">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[color:var(--muted)]">
+                      It asks for
+                    </p>
+                    <ul className="vault-value mt-1.5 space-y-1 text-[11.5px] text-[color:var(--ink)]/85">
+                      {shown.map((label) => (
+                        <li key={label} className="flex items-center gap-2">
+                          <span
+                            aria-hidden
+                            className="h-[5px] w-[5px] shrink-0 rounded-full border"
+                            style={{ borderColor: 'var(--accent)' }}
+                          />
+                          {label}
+                        </li>
+                      ))}
+                      {asks.length > shown.length && (
+                        <li className="text-[color:var(--muted)]">
+                          + {asks.length - shown.length} more
+                          {manifest.subjects?.length
+                            ? ` · ${manifest.subjects[0]?.label?.toLowerCase()}`
+                            : ''}
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+
                   <p className="mt-3 flex-1 text-[12px] leading-relaxed">
                     <span className="font-semibold" style={{ color: 'var(--accent)' }}>
                       What it proves:
@@ -90,20 +140,25 @@ export default async function Landing() {
         <section className="my-12 grid gap-px overflow-hidden rounded-2xl bg-[color:var(--line)] ring-1 ring-[color:var(--line)] sm:grid-cols-3">
           {[
             [
-              '01 — Connect',
+              'Connect',
               'One hop to Geena: sign in or sign up there, one consent screen. The company never sees a password, a code, or your vault.',
             ],
             [
-              '02 — Grant',
+              'Grant',
               'You choose what each company gets, item by item, in your own Geena — and you can change your mind at any time.',
             ],
             [
-              '03 — Served fresh',
+              'Served fresh',
               'Companies read the current version of exactly what you granted. Every read leaves a receipt; revoking ends it, entirely.',
             ],
-          ].map(([title, text]) => (
+          ].map(([title, text], index) => (
             <div key={title} className="bg-[color:var(--card)] p-6">
-              <h3 className="tabular text-[12px] font-bold tracking-wide">{title}</h3>
+              <h3 className="flex items-baseline gap-2 text-[12px] font-bold tracking-wide">
+                <span className="vault-value text-[10px] text-[color:var(--muted)]">
+                  0{index + 1}
+                </span>
+                {title}
+              </h3>
               <p className="mt-2 text-[12px] leading-relaxed text-[color:var(--muted)]">{text}</p>
             </div>
           ))}
@@ -111,13 +166,14 @@ export default async function Landing() {
 
         <footer className="flex flex-col items-center gap-1 border-t border-[color:var(--line)] py-10 text-center text-[11px] text-[color:var(--muted)]">
           <p>
-            Vinst, Resa and Vagn are fictional. Everything runs against the Geena test
-            environment — no payments, no policies, no cars, and nothing stored beyond your demo
-            session.
+            Vinst, Resa and Vagn are fictional. Everything runs against the Geena test environment —
+            no payments, no policies, no cars, and nothing stored beyond your demo session.
           </p>
           <p>
-            Every page has a <strong className="font-semibold">Backstage</strong> button: the
-            manifest, the live connection, and each API call the integration made.
+            Data served from a vault is always set in{' '}
+            <span className="vault-value">this typeface</span> — so you can tell which pixels came
+            from Geena. Every page also has a <strong className="font-semibold">Backstage</strong>{' '}
+            button: the manifest, the live connection, and each API call the integration made.
           </p>
         </footer>
       </main>
@@ -129,10 +185,10 @@ export default async function Landing() {
 function CardArt({ slug }: { slug: DemoSlug }) {
   if (slug === 'vinst') {
     return (
-      <div className="flex h-32 items-end px-5 pb-4" style={{ background: '#10231d' }} aria-hidden>
+      <div className="flex h-32 items-end px-5 pb-4" style={{ background: '#0d211b' }} aria-hidden>
         <svg viewBox="0 0 240 64" className="w-full">
           {[16, 40].map((y) => (
-            <line key={y} x1="0" x2="240" y1={y} y2={y} stroke="#2a4038" strokeWidth="1" />
+            <line key={y} x1="0" x2="240" y1={y} y2={y} stroke="#28413a" strokeWidth="1" />
           ))}
           <path
             d="M0 56 L30 50 L60 53 L90 42 L120 38 L150 28 L180 32 L210 18 L240 10"
@@ -169,7 +225,15 @@ function CardArt({ slug }: { slug: DemoSlug }) {
     <div className="relative flex h-32 items-center" style={{ background: '#15171c' }} aria-hidden>
       <svg viewBox="0 0 240 128" className="h-full w-full">
         <path d="M0 84 L240 64" stroke="#3a3f4a" strokeWidth="26" />
-        <line x1="0" y1="84" x2="240" y2="64" stroke="#d9542b" strokeWidth="2.5" strokeDasharray="16 12" />
+        <line
+          x1="0"
+          y1="84"
+          x2="240"
+          y2="64"
+          stroke="#d9542b"
+          strokeWidth="2.5"
+          strokeDasharray="16 12"
+        />
         <circle cx="178" cy="52" r="3" fill="#f4f4f2" />
         <circle cx="196" cy="50" r="3" fill="#f4f4f2" />
       </svg>

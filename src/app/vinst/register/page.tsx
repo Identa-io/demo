@@ -3,13 +3,7 @@
 import { useEffect, useState } from 'react';
 import { GeenaButton } from '@/components/geena-button';
 import { StateNotice } from '@/components/demo-chrome';
-import {
-  addressLines,
-  docData,
-  fullName,
-  maskedAccount,
-  taxResidency,
-} from '@/lib/records';
+import { addressLines, docData, fullName, maskedAccount, taxResidency } from '@/lib/records';
 import { useDemoBase, useGeena } from '@/lib/use-geena';
 
 /**
@@ -42,7 +36,10 @@ export default function VinstRegister() {
   const waitingOnGrants = connected && !data?.accessEnded && !anythingGranted;
   const complete = !!(name && email && (payout || tax));
 
-  const sections: { title: string; rows: { label: string; value: string }[] }[] = [
+  const sections: {
+    title: string;
+    rows: { label: string; value: string }[];
+  }[] = [
     {
       title: 'Identity',
       rows: [
@@ -65,6 +62,10 @@ export default function VinstRegister() {
     },
   ];
 
+  const completedSections = sections.filter((section) =>
+    section.rows.some((row) => row.value),
+  ).length;
+
   let fieldIndex = 0;
 
   return (
@@ -75,8 +76,8 @@ export default function VinstRegister() {
           Your application
         </h1>
         <p className="mt-2 max-w-lg text-[13px] leading-relaxed text-[color:var(--muted)]">
-          Regulation says we must know who you are, where you pay tax, and where withdrawals
-          should go. It does not say you have to type it.
+          Regulation says we must know who you are, where you pay tax, and where withdrawals should
+          go. It does not say you have to type it.
         </p>
 
         {submitted ? (
@@ -99,7 +100,9 @@ export default function VinstRegister() {
           </div>
         ) : (
           <div className="mt-6 space-y-4">
-            {data && !data.configured && <StateNotice tone="info">{data.configureHint}</StateNotice>}
+            {data && !data.configured && (
+              <StateNotice tone="info">{data.configureHint}</StateNotice>
+            )}
 
             {denied && !connected && (
               <StateNotice tone="denied">
@@ -143,37 +146,58 @@ export default function VinstRegister() {
               </div>
             )}
 
-            {sections.map((section) => (
-              <div key={section.title} className="card p-5">
-                <h2 className="text-[13px] font-semibold">{section.title}</h2>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  {section.rows.map((row) => {
-                    const delay = row.value ? `${fieldIndex++ * 120}ms` : undefined;
-                    return (
-                      <div key={row.label} className={section.rows.length === 1 ? 'sm:col-span-2' : ''}>
-                        <p className="field-label">{row.label}</p>
+            {/* Set like a statement: each section opens on a rule, the application closes over
+                a double rule — the way audited documents mark their totals. */}
+            <div className="space-y-7 pt-2">
+              {sections.map((section, sectionIndex) => (
+                <section key={section.title} className="ledger-open pt-3">
+                  <div className="flex items-baseline justify-between">
+                    <h2 className="text-[13px] font-semibold tracking-tight">{section.title}</h2>
+                    <span className="vault-value text-[10px] text-[color:var(--muted)]">
+                      {String(sectionIndex + 1).padStart(2, '0')} /{' '}
+                      {String(sections.length).padStart(2, '0')}
+                    </span>
+                  </div>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    {section.rows.map((row) => {
+                      const delay = row.value ? `${fieldIndex++ * 120}ms` : undefined;
+                      return (
                         <div
-                          key={row.value || 'empty'}
-                          className={`mt-1 min-h-10 rounded-lg border border-[color:var(--line)] bg-[color:var(--bg)]/60 px-3 py-2 text-[14px] ${
-                            row.value ? 'fill-in font-medium' : 'text-[color:var(--muted)]'
-                          }`}
-                          style={delay ? { animationDelay: delay } : undefined}
+                          key={row.label}
+                          className={section.rows.length === 1 ? 'sm:col-span-2' : ''}
                         >
-                          {row.value || 'Waiting for your vault'}
+                          <p className="field-label">{row.label}</p>
+                          <div
+                            key={row.value || 'empty'}
+                            className={`mt-1 min-h-10 rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-2.5 text-[13.5px] ${
+                              row.value ? 'fill-in vault-value' : 'text-[color:var(--muted)]'
+                            }`}
+                            style={delay ? { animationDelay: delay } : undefined}
+                          >
+                            {row.value || 'Waiting for your vault'}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+
+              <div className="ledger-close flex items-baseline justify-between pb-2.5 pt-1">
+                <span className="text-[13px] font-semibold">Application</span>
+                <span className="vault-value text-[12px]">
+                  {completedSections} / {sections.length} sections complete
+                </span>
               </div>
-            ))}
+            </div>
 
             <button
               onClick={() => setSubmitted(true)}
               disabled={!complete}
               className="btn-primary w-full !py-3.5 !text-[14px]"
             >
-              Submit application{complete ? '' : ' — waiting for identity and payout details'}
+              Submit application
+              {complete ? '' : ' — waiting for identity and payout details'}
             </button>
 
             {connected && !data?.accessEnded && (
@@ -200,9 +224,18 @@ export default function VinstRegister() {
           <p className="eyebrow">How this works</p>
           <ol className="mt-3 space-y-3 text-[13px] leading-relaxed">
             {[
-              ['Connect', 'One hop to Geena — sign in or sign up there. Vinst never sees a password or a code.'],
-              ['Consent', 'One screen lists exactly what Vinst asks for, and why. You choose item by item.'],
-              ['Review & submit', 'The application fills itself. Sensitive identifiers render masked here.'],
+              [
+                'Connect',
+                'One hop to Geena — sign in or sign up there. Vinst never sees a password or a code.',
+              ],
+              [
+                'Consent',
+                'One screen lists exactly what Vinst asks for, and why. You choose item by item.',
+              ],
+              [
+                'Review & submit',
+                'The application fills itself. Sensitive identifiers render masked here.',
+              ],
             ].map(([title, text], index) => (
               <li key={title} className="flex gap-3">
                 <span
@@ -222,9 +255,9 @@ export default function VinstRegister() {
         <div className="card p-5">
           <p className="eyebrow">Why we ask</p>
           <p className="mt-2 text-[12px] leading-relaxed text-[color:var(--muted)]">
-            Identity and tax residency are required under KYC/AML rules; the payout account is
-            where withdrawals go. The consent screen states the legal basis and the retention
-            period — the same facts, shown to you before anything moves.
+            Identity and tax residency are required under KYC/AML rules; the payout account is where
+            withdrawals go. The consent screen states the legal basis and the retention period — the
+            same facts, shown to you before anything moves.
           </p>
         </div>
       </aside>

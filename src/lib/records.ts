@@ -18,7 +18,7 @@ export function slotByKind(slots: DataSlot[] | undefined, kind: string): DataSlo
 /** First served document data for a target — the recipient's own record (no subject block). */
 export function docData(
   slots: DataSlot[] | undefined,
-  target: string
+  target: string,
 ): Record<string, unknown> | undefined {
   const slot = slotByTarget(slots, target);
   const record = slot?.records.find((r) => r.type === 'document' && !r.subject);

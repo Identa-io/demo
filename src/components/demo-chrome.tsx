@@ -23,10 +23,7 @@ export function DemoChrome({ demo }: { demo: DemoSlug }) {
             <a href="/" className="hover:text-[color:var(--ink)]">
               All demos
             </a>
-            <a
-              href="https://github.com/Identa-io/demo"
-              className="hover:text-[color:var(--ink)]"
-            >
+            <a href="https://github.com/Identa-io/demo" className="hover:text-[color:var(--ink)]">
               Source
             </a>
           </nav>

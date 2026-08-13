@@ -3,7 +3,8 @@ import { DemoChrome } from '@/components/demo-chrome';
 
 export const metadata: Metadata = {
   title: 'Resa — travel insurance',
-  description: 'A Geena demo: cover for you and your children, without the child 1 / child 2 forms.',
+  description:
+    'A Geena demo: cover for you and your children, without the child 1 / child 2 forms.',
 };
 
 export default function ResaLayout({ children }: { children: React.ReactNode }) {

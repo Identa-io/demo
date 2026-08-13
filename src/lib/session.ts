@@ -91,7 +91,10 @@ export async function getSession(): Promise<{ sid: string; session: Session }> {
   return { sid, session };
 }
 
-export function demoSession(session: { demos: Partial<Record<DemoSlug, DemoSession>> }, demo: DemoSlug): DemoSession {
+export function demoSession(
+  session: { demos: Partial<Record<DemoSlug, DemoSession>> },
+  demo: DemoSlug,
+): DemoSession {
   return (session.demos[demo] ??= { bookings: [], log: [] });
 }
 

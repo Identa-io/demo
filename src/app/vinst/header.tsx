@@ -18,10 +18,16 @@ export function VinstHeader() {
           <span className="font-display text-[19px] font-semibold tracking-tight">Vinst</span>
         </a>
         <nav className="flex items-center gap-6 text-[13px] font-medium">
-          <a href={`${base}/#funds`} className="hidden text-[color:var(--muted)] hover:text-[color:var(--ink)] sm:block">
+          <a
+            href={`${base}/#funds`}
+            className="hidden text-[color:var(--muted)] hover:text-[color:var(--ink)] sm:block"
+          >
             Funds
           </a>
-          <a href={`${base}/#pricing`} className="hidden text-[color:var(--muted)] hover:text-[color:var(--ink)] sm:block">
+          <a
+            href={`${base}/#pricing`}
+            className="hidden text-[color:var(--muted)] hover:text-[color:var(--ink)] sm:block"
+          >
             Pricing
           </a>
           <a href={`${base}/register`} className="btn-primary">

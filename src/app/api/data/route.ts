@@ -74,9 +74,7 @@ export async function GET(request: NextRequest) {
     // org never learns why (pending is indistinguishable from refused, by design).
     const granted = status.items.filter((item) => item.status === 'granted');
     const served = await Promise.all(
-      granted.map((item) =>
-        getSlot(demo, ds, ds.requestId!, item.slotId).catch(() => undefined)
-      )
+      granted.map((item) => getSlot(demo, ds, ds.requestId!, item.slotId).catch(() => undefined)),
     );
     const recordsBySlot = new Map<string, ServedRecord[]>();
     served.forEach((slot) => {
@@ -105,7 +103,7 @@ export async function GET(request: NextRequest) {
                 // The browser never holds a Geena token — file bytes flow through our proxy.
                 downloadUrl: `/api/file?demo=${demo}&slot=${item.slotId}&file=${record.resourceId}`,
               }
-            : record
+            : record,
         ),
       })),
       bookings: demo === 'vagn' ? ds.bookings : undefined,

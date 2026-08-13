@@ -57,7 +57,7 @@ async function tokenRequest(
   demo: DemoSlug,
   ds: DemoSession,
   note: string,
-  params: Record<string, string>
+  params: Record<string, string>,
 ): Promise<TokenResponse> {
   const { clientId, clientSecret } = demoCredentials(demo);
   const body = new URLSearchParams({ client_id: clientId, client_secret: clientSecret, ...params });
@@ -95,7 +95,7 @@ function toTokenSet(t: TokenResponse): TokenSet {
 export async function exchangeCode(
   demo: DemoSlug,
   ds: DemoSession,
-  args: { code: string; verifier: string; redirectUri: string }
+  args: { code: string; verifier: string; redirectUri: string },
 ): Promise<{ tokens: TokenSet; requestId?: string }> {
   const t = await tokenRequest(demo, ds, 'code exchange', {
     grant_type: 'authorization_code',

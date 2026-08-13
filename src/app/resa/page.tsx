@@ -60,8 +60,8 @@ export default function ResaQuote() {
             The whole family, covered in one sitting.
           </h1>
           <p className="mt-4 max-w-md text-[15px] leading-relaxed text-[color:var(--muted)]">
-            No &quot;traveller 2, date of birth&quot; forms. Your children live in your vault —
-            you decide which of them this policy covers, and that is all Resa ever learns.
+            No &quot;traveller 2, date of birth&quot; forms. Your children live in your vault — you
+            decide which of them this policy covers, and that is all Resa ever learns.
           </p>
 
           <div className="card mt-8 p-5">
@@ -155,28 +155,35 @@ export default function ResaQuote() {
 
             {hasTravellers && (
               <ul className="mt-4 divide-y divide-[color:var(--line)]">
-                <li className="flex items-center justify-between gap-3 py-3">
+                <li className="leader-row py-3">
                   <div>
-                    <p className="text-[14px] font-semibold">{holderName}</p>
+                    <p className="vault-value text-[13.5px] font-semibold">{holderName}</p>
                     <p className="text-[11px] text-[color:var(--muted)]">
                       Policyholder{holderBirth ? ` · born ${holderBirth}` : ''}
                     </p>
                   </div>
-                  <span className="tabular text-[13px] font-semibold">€{price.adult.toFixed(2)}</span>
+                  <span className="leader-fill" aria-hidden />
+                  <span className="tabular text-[13px] font-semibold">
+                    €{price.adult.toFixed(2)}
+                  </span>
                 </li>
                 {children.map((child) => {
                   const age = child.dateOfBirth ? ageFrom(child.dateOfBirth) : null;
                   return (
-                    <li key={child.alias} className="flex items-center justify-between gap-3 py-3">
+                    <li key={child.alias} className="leader-row py-3">
                       <div className="min-w-0">
-                        <p className="text-[14px] font-semibold">{child.name || 'Child'}</p>
+                        <p className="vault-value text-[13.5px] font-semibold">
+                          {child.name || 'Child'}
+                        </p>
                         <p
                           className="truncate text-[11px] text-[color:var(--muted)]"
                           title="The pairwise reference Resa holds instead of an identity — stable for this policy, meaningless anywhere else. Two insurers could never match it."
                         >
-                          Child{age != null ? ` · ${age} y` : ''} · ref {child.alias.slice(0, 8)}
+                          Child{age != null ? ` · ${age} y` : ''} ·{' '}
+                          <span className="vault-value">ref {child.alias.slice(0, 8)}</span>
                         </p>
                       </div>
+                      <span className="leader-fill" aria-hidden />
                       <span className="tabular text-[13px] font-semibold">
                         €{price.perChild.toFixed(2)}
                       </span>
@@ -200,33 +207,35 @@ export default function ResaQuote() {
             <p className="eyebrow">Your quote</p>
             <div className="mt-3 flex items-baseline justify-between">
               <span className="text-[13px] text-[color:var(--muted)]">
-                {destination} · {days} {days === 1 ? 'day' : 'days'} ·{' '}
-                {1 + children.length} traveller{children.length ? 's' : ''}
+                {destination} · {days} {days === 1 ? 'day' : 'days'} · {1 + children.length}{' '}
+                traveller{children.length ? 's' : ''}
               </span>
             </div>
+            {/* The one warm mark on the page sits over the figure that matters. */}
+            <div className="mt-3 h-1 w-10 rounded-full" style={{ background: 'var(--sun)' }} />
             <p className="tabular mt-2 text-[36px] font-bold tracking-tight">
               €{price.total.toFixed(2)}
             </p>
             <p className="text-[11px] text-[color:var(--muted)]">
-              €{price.adult.toFixed(2)} adult{children.length > 0 &&
-                ` + ${children.length} × €${price.perChild.toFixed(2)} child`}
+              €{price.adult.toFixed(2)} adult
+              {children.length > 0 && ` + ${children.length} × €${price.perChild.toFixed(2)} child`}
             </p>
 
-            <table className="mt-5 w-full text-[12px]">
-              <tbody>
-                {[
-                  ['Medical & repatriation', '€10m'],
-                  ['Cancellation', '€5,000 / person'],
-                  ['Baggage', '€2,500 / person'],
-                  ['Excess', '€75'],
-                ].map(([item, amount]) => (
-                  <tr key={item} className="border-t border-[color:var(--line)]">
-                    <td className="py-2 text-[color:var(--muted)]">{item}</td>
-                    <td className="tabular py-2 text-right font-medium">{amount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {/* Schedule of cover, set with leaders — the way policy schedules have always read. */}
+            <div className="mt-5 space-y-2 text-[12px]">
+              {[
+                ['Medical & repatriation', '€10m'],
+                ['Cancellation', '€5,000 / person'],
+                ['Baggage', '€2,500 / person'],
+                ['Excess', '€75'],
+              ].map(([item, amount]) => (
+                <div key={item} className="leader-row">
+                  <span className="text-[color:var(--muted)]">{item}</span>
+                  <span className="leader-fill" aria-hidden />
+                  <span className="tabular font-medium">{amount}</span>
+                </div>
+              ))}
+            </div>
 
             {issued ? (
               <div
@@ -235,8 +244,8 @@ export default function ResaQuote() {
               >
                 <p className="font-semibold">Policy RES-2026-08471 issued (simulated).</p>
                 <p className="mt-1 text-[color:var(--muted)]">
-                  {1 + children.length} traveller{children.length ? 's' : ''} covered,{' '}
-                  {destination}, {days} days. Documents by email — in a real Resa, anyway.
+                  {1 + children.length} traveller{children.length ? 's' : ''} covered, {destination}
+                  , {days} days. Documents by email — in a real Resa, anyway.
                 </p>
               </div>
             ) : (

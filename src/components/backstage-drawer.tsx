@@ -71,8 +71,8 @@ export function BackstageDrawer({ demo }: { demo: DemoSlug }) {
                 <Row k="request_id" v={data?.requestId ?? '— returned by the token exchange'} />
                 <Row k="connected" v={String(data?.connected ?? false)} />
                 <p className="pt-2 text-slate-400">
-                  Tokens live server-side only; the browser holds an opaque session id. Slot ids
-                  are read from `status`, never hard-coded.
+                  Tokens live server-side only; the browser holds an opaque session id. Slot ids are
+                  read from `status`, never hard-coded.
                 </p>
               </dl>
             )}
