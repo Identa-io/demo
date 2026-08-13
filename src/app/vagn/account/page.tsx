@@ -15,7 +15,7 @@ import { FLEET } from '../fleet';
  * the counter, no attachments in anyone's inbox.
  *
  * Act 2, revoke: done in the person's own Geena ("trip's over — take it all back"). The poll
- * flips this page to ACCESS ENDED: nothing here carried `keep`, so nothing survived.
+ * flips this page to ACCESS ENDED: Vagn never adopted a copy, so nothing survived.
  *
  * Logout is deliberately the other button — it ends Vagn's session and touches nothing at
  * Geena. Session control belongs to the app; data control belongs to the person.
@@ -79,8 +79,8 @@ export default function VagnAccount() {
       {data?.accessEnded && (
         <StateNotice tone="ended">
           <strong>Access ended.</strong> You revoked Vagn in your Geena — the desk view went dark,
-          because nothing here carried &quot;keep&quot;. Compare that to the licence photocopy a
-          rental counter took in 2019. Signing in again simply asks for consent afresh.
+          and since Vagn never kept a copy, nothing survived. Compare that to the licence photocopy
+          a rental counter took in 2019. Signing in again simply asks for consent afresh.
           <div className="mt-3">
             <GeenaButton demo="vagn" returnTo="/account" label="Reconnect with Geena" />
           </div>
@@ -258,8 +258,8 @@ export default function VagnAccount() {
                     </ul>
                   )}
                   <p className="mt-3 text-[11px] leading-relaxed text-[color:var(--muted)]">
-                    Every read here wrote a receipt the driver can see in their Geena. Nothing
-                    carries &quot;keep&quot; — revocation ends this view, entirely.
+                    Every read here wrote a receipt the driver can see in their Geena. Vagn keeps no
+                    copies — revocation ends this view, entirely.
                   </p>
                 </div>
               </div>

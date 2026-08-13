@@ -50,9 +50,13 @@ organization + OAuth app + published manifest per demo.
    The `client_id` is the slug you choose; the secret is shown **exactly once** — put it in
    `.env` in the same breath. Each app's `allowedOrigins` must contain the origin the demo runs
    on (`http://vinst.localhost:3005` for dev, `https://vinst.demo.test.geena.eu` deployed).
-2. **Publish the manifests.** The authoring inputs are checked in under `manifests/` — create
-   them in the studio (or via `manifestCreate`) and publish. They carry `initiation: BOTH`, so
-   the "Continue with Geena" button may open them. Copy each published manifest id into `.env`.
+2. **Publish the manifests.** The authoring inputs are checked in under `manifests/` — import
+   them in the studio (Manifests → Import JSON) or via `manifestCreate`, then publish. They
+   carry `initiation: BOTH` (the "Continue with Geena" button may open them) and the full verb
+   set (`fill`/`edit`/`keep`; the licence slot skips `edit` — file stores have no delegated
+   write). The default seeded business plan is a plain ask, so a platform admin must put the
+   three demo orgs on a plan whose capability covers these targets and verbs — otherwise the
+   ceremony refuses with a capability error. Copy each published manifest id into `.env`.
 3. Configure and run:
 
 ```bash

@@ -14,21 +14,21 @@
       "group": "policyholder",
       "kind": "SCHEMA",
       "target": "PersonFullName",
-      "verbs": []
+      "verbs": ["FILL", "EDIT", "KEEP"]
     },
     {
       "label": "Email",
       "group": "policyholder",
       "kind": "SCHEMA",
       "target": "PersonEmail",
-      "verbs": []
+      "verbs": ["FILL", "EDIT", "KEEP"]
     },
     {
       "label": "Date of birth",
       "group": "policyholder",
       "kind": "SCHEMA",
       "target": "PersonBirthDetails",
-      "verbs": []
+      "verbs": ["FILL", "EDIT", "KEEP"]
     },
     {
       "label": "Child's name",
@@ -36,7 +36,7 @@
       "subject": "child",
       "kind": "SCHEMA",
       "target": "PersonFullName",
-      "verbs": []
+      "verbs": ["FILL", "EDIT", "KEEP"]
     },
     {
       "label": "Child's date of birth",
@@ -44,7 +44,7 @@
       "subject": "child",
       "kind": "SCHEMA",
       "target": "PersonBirthDetails",
-      "verbs": []
+      "verbs": ["FILL", "EDIT", "KEEP"]
     }
   ],
   "terms": {

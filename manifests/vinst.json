@@ -13,42 +13,42 @@
       "group": "identity",
       "kind": "SCHEMA",
       "target": "PersonFullName",
-      "verbs": []
+      "verbs": ["FILL", "EDIT", "KEEP"]
     },
     {
       "label": "Email",
       "group": "identity",
       "kind": "SCHEMA",
       "target": "PersonEmail",
-      "verbs": []
+      "verbs": ["FILL", "EDIT", "KEEP"]
     },
     {
       "label": "Phone",
       "group": "identity",
       "kind": "SCHEMA",
       "target": "PersonPhone",
-      "verbs": []
+      "verbs": ["FILL", "EDIT", "KEEP"]
     },
     {
       "label": "Residential address",
       "group": "address",
       "kind": "SCHEMA",
       "target": "PersonAddress",
-      "verbs": []
+      "verbs": ["FILL", "EDIT", "KEEP"]
     },
     {
       "label": "Payout account",
       "group": "payout",
       "kind": "SCHEMA",
       "target": "PersonBankAccount",
-      "verbs": []
+      "verbs": ["FILL", "EDIT", "KEEP"]
     },
     {
       "label": "Tax residency",
       "group": "tax",
       "kind": "SCHEMA",
       "target": "PersonTaxStatus",
-      "verbs": []
+      "verbs": ["FILL", "EDIT", "KEEP"]
     }
   ],
   "terms": {

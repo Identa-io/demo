@@ -12,22 +12,34 @@
       "group": "driver",
       "kind": "SCHEMA",
       "target": "PersonFullName",
-      "verbs": []
+      "verbs": ["FILL", "EDIT", "KEEP"]
     },
-    { "label": "Email", "group": "driver", "kind": "SCHEMA", "target": "PersonEmail", "verbs": [] },
-    { "label": "Phone", "group": "driver", "kind": "SCHEMA", "target": "PersonPhone", "verbs": [] },
+    {
+      "label": "Email",
+      "group": "driver",
+      "kind": "SCHEMA",
+      "target": "PersonEmail",
+      "verbs": ["FILL", "EDIT", "KEEP"]
+    },
+    {
+      "label": "Phone",
+      "group": "driver",
+      "kind": "SCHEMA",
+      "target": "PersonPhone",
+      "verbs": ["FILL", "EDIT", "KEEP"]
+    },
     {
       "label": "Home address",
       "group": "contract",
       "kind": "SCHEMA",
       "target": "PersonAddress",
-      "verbs": []
+      "verbs": ["FILL", "EDIT", "KEEP"]
     },
     {
       "label": "Driving licence (scan or photo)",
       "group": "licence",
       "kind": "PERSONAL_FILES",
-      "verbs": []
+      "verbs": ["FILL", "KEEP"]
     }
   ],
   "terms": {
