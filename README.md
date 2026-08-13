@@ -4,11 +4,11 @@ Three small fictional companies, each built on **Connect with Geena** — and on
 integration. The demos sell the UX; this repo sells the code: everything a partner needs is in
 `src/lib/geena/` (~2 files) plus one redirect and one callback route.
 
-| Demo | Scenario | Proves |
-|---|---|---|
-| **Vinst** | opening an account with a fund platform | KYC-grade autofill: identity, payout account and tax residency arrive from the vault, current on every visit |
-| **Resa** | travel insurance for you and your children | family data without "child 1 / child 2" forms — per-person pricing over exactly the children you chose to cover |
-| **Vagn** | renting a car with a real account | passwordless login (Geena is the whole auth stack), a licence shared without attachments, and a revocation that actually ends access |
+| Demo      | Scenario                                   | Proves                                                                                                                               |
+| --------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Vinst** | opening an account with a fund platform    | KYC-grade autofill: identity, payout account and tax residency arrive from the vault, current on every visit                         |
+| **Resa**  | travel insurance for you and your children | family data without "child 1 / child 2" forms — per-person pricing over exactly the children you chose to cover                      |
+| **Vagn**  | renting a car with a real account          | passwordless login (Geena is the whole auth stack), a licence shared without attachments, and a revocation that actually ends access |
 
 ## How a demo connects
 
@@ -46,7 +46,7 @@ Integration rules this repo models on purpose:
 Requirements: Node 20+, a Geena environment (the public site runs against test), and one
 organization + OAuth app + published manifest per demo.
 
-1. **Create the three orgs and apps** on the Geena dashboard (*Organization → Apps → New app*).
+1. **Create the three orgs and apps** on the Geena dashboard (_Organization → Apps → New app_).
    The `client_id` is the slug you choose; the secret is shown **exactly once** — put it in
    `.env` in the same breath. Each app's `allowedOrigins` must contain the origin the demo runs
    on (`http://vinst.localhost:3005` for dev, `https://vinst.demo.test.geena.eu` deployed).
