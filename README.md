@@ -48,8 +48,12 @@ organization + OAuth app + published manifest per demo.
 
 1. **Create the three orgs and apps** on the Geena dashboard (_Organization → Apps → New app_).
    The `client_id` is the slug you choose; the secret is shown **exactly once** — put it in
-   `.env` in the same breath. Each app's `allowedOrigins` must contain the origin the demo runs
-   on (`http://vinst.localhost:3005` for dev, `https://vinst.demo.test.geena.eu` deployed).
+   `.env` in the same breath. Each app's `allowedOrigins` must contain the **exact origin** the
+   demo runs on — scheme + host + port, no path, matched as a string. For local dev register
+   both `http://localhost:3005` (path-style browsing) and `http://vinst.localhost:3005`
+   (subdomain-style); deployed, add `https://vinst.demo.test.geena.eu`. Getting this wrong is
+   the classic first failure: `/oauth/authorize` answers "invalid redirect_uri for this
+   client". Origins are editable afterwards by a platform admin (_Admin → Partners_).
 2. **Publish the manifests.** The authoring inputs are checked in under `manifests/` — import
    them in the studio (Manifests → Import JSON) or via `manifestCreate`, then publish. They
    carry `initiation: BOTH` (the "Continue with Geena" button may open them) and the full verb
