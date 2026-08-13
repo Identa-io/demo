@@ -1,27 +1,11 @@
 import { headers } from 'next/headers';
 import { DEMO_SLUGS, DEMOS, type DemoSlug } from '@/lib/demos';
-import vinstManifest from '../../manifests/vinst.json';
-import resaManifest from '../../manifests/resa.json';
-import vagnManifest from '../../manifests/vagn.json';
-
-interface ManifestFile {
-  name: string;
-  slots: { label?: string }[];
-  subjects?: { label?: string }[];
-}
-
-const MANIFESTS: Record<DemoSlug, ManifestFile> = {
-  vinst: vinstManifest,
-  resa: resaManifest,
-  vagn: vagnManifest,
-};
 
 /**
- * The gallery: one page, three doors. Each card is a CONNECTION RECORD — in Geena's world the
- * ask is the identity, so the card shows an excerpt of the demo's actual manifest (imported from
- * the same files the studio publishes). On demo.test.geena.eu each card leads to the demo's own
- * subdomain — every partner is its own origin, and so is every demo; on a bare host the same
- * routes work path-style.
+ * The gallery: one page, three doors. Each card states its ask in one generalized line — the
+ * full manifest lives one click away, in the demo's backstage drawer, where an itemized list
+ * belongs. On demo.test.geena.eu each card leads to the demo's own subdomain — every partner is
+ * its own origin, and so is every demo; on a bare host the same routes work path-style.
  */
 export default async function Landing() {
   const host = (await headers()).get('host') ?? '';
@@ -62,11 +46,6 @@ export default async function Landing() {
         <section className="grid gap-6 pb-4 md:grid-cols-3">
           {DEMO_SLUGS.map((slug) => {
             const demo = DEMOS[slug];
-            const manifest = MANIFESTS[slug];
-            const asks = manifest.slots
-              .map((slot) => slot.label)
-              .filter((label): label is string => !!label);
-            const shown = asks.slice(0, 3);
             return (
               <a
                 key={slug}
@@ -91,33 +70,9 @@ export default async function Landing() {
                   <p className="mt-1.5 text-[13px] leading-relaxed text-[color:var(--muted)]">
                     {demo.scenario}
                   </p>
-
-                  {/* The ask IS the identity: an excerpt of the manifest this demo opens. */}
-                  <div className="mt-4 rounded-xl border border-[color:var(--line)] bg-[color:var(--bg)]/60 px-3.5 py-3">
-                    <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[color:var(--muted)]">
-                      It asks for
-                    </p>
-                    <ul className="vault-value mt-1.5 space-y-1 text-[11.5px] text-[color:var(--ink)]/85">
-                      {shown.map((label) => (
-                        <li key={label} className="flex items-center gap-2">
-                          <span
-                            aria-hidden
-                            className="h-[5px] w-[5px] shrink-0 rounded-full border"
-                            style={{ borderColor: 'var(--accent)' }}
-                          />
-                          {label}
-                        </li>
-                      ))}
-                      {asks.length > shown.length && (
-                        <li className="text-[color:var(--muted)]">
-                          + {asks.length - shown.length} more
-                          {manifest.subjects?.length
-                            ? ` · ${manifest.subjects[0]?.label?.toLowerCase()}`
-                            : ''}
-                        </li>
-                      )}
-                    </ul>
-                  </div>
+                  <p className="mt-1 text-[12px] text-[color:var(--muted)]">
+                    Asks for {demo.asks}.
+                  </p>
 
                   <p className="mt-3 flex-1 text-[12px] leading-relaxed">
                     <span className="font-semibold" style={{ color: 'var(--accent)' }}>
