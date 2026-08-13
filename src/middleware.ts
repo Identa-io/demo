@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { DEMO_SLUGS } from './lib/demos';
 
 /**
- * Host-based routing: each demo is its own origin (blomma.demo.test.geena.eu — and
- * blomma.localhost:3005 in dev, which browsers resolve without /etc/hosts). On a demo
- * subdomain, `/checkout` rewrites to `/blomma/checkout`; on the bare host, the same routes are
- * reachable path-style (`/blomma/checkout`), so local development needs nothing special.
+ * Host-based routing: each demo is its own origin (vinst.demo.test.geena.eu — and
+ * vinst.localhost:3005 in dev, which browsers resolve without /etc/hosts). On a demo
+ * subdomain, `/register` rewrites to `/vinst/register`; on the bare host, the same routes are
+ * reachable path-style (`/vinst/register`), so local development needs nothing special.
  */
 export function middleware(request: NextRequest) {
   const host = request.headers.get('host') ?? '';

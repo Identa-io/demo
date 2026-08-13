@@ -42,8 +42,8 @@ export interface DemoSession {
   /** Single-flight token refresh: concurrent requests share one refresh (rotation is strict
    * single-use — a second parallel refresh would revoke the whole family). */
   refreshing?: Promise<TokenSet>;
-  /** Nyckel only: listing ids the visitor applied to, so the account page has content. */
-  applications: string[];
+  /** Vagn only: the car classes the visitor reserved, so the account page has content. */
+  bookings: string[];
   /** The backstage drawer's API log — every upstream Geena call this session made. */
   log: BackstageEntry[];
 }
@@ -92,7 +92,7 @@ export async function getSession(): Promise<{ sid: string; session: Session }> {
 }
 
 export function demoSession(session: { demos: Partial<Record<DemoSlug, DemoSession>> }, demo: DemoSlug): DemoSession {
-  return (session.demos[demo] ??= { applications: [], log: [] });
+  return (session.demos[demo] ??= { bookings: [], log: [] });
 }
 
 export function logCall(ds: DemoSession, entry: BackstageEntry) {
@@ -106,5 +106,5 @@ export function clearDemoSession(ds: DemoSession) {
   delete ds.tokens;
   delete ds.requestId;
   delete ds.refreshing;
-  ds.applications = [];
+  ds.bookings = [];
 }

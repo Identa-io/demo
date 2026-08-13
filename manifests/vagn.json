@@ -1,0 +1,26 @@
+{
+  "name": "Vagn rental profile",
+  "initiation": "BOTH",
+  "groups": [
+    { "id": "driver", "label": "Driver", "order": 1 },
+    { "id": "contract", "label": "Rental contract", "order": 2 },
+    { "id": "licence", "label": "Licence", "order": 3 }
+  ],
+  "slots": [
+    { "label": "Full name", "group": "driver", "kind": "SCHEMA", "target": "PersonFullName", "verbs": [] },
+    { "label": "Email", "group": "driver", "kind": "SCHEMA", "target": "PersonEmail", "verbs": [] },
+    { "label": "Phone", "group": "driver", "kind": "SCHEMA", "target": "PersonPhone", "verbs": [] },
+    { "label": "Home address", "group": "contract", "kind": "SCHEMA", "target": "PersonAddress", "verbs": [] },
+    { "label": "Driving licence (scan or photo)", "group": "licence", "kind": "PERSONAL_FILES", "verbs": [] }
+  ],
+  "terms": {
+    "legalBasis": "CONSENT",
+    "purpose": "ONBOARDING",
+    "retentionDays": 90,
+    "retentionAction": "AUTO_DELETE",
+    "rightToErasure": true,
+    "rightToRectification": true,
+    "allowDownload": false,
+    "privacyPolicyUrl": "https://demo.test.geena.eu/vagn/privacy"
+  }
+}

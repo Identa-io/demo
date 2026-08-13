@@ -3,25 +3,34 @@ import { DEMOS } from '@/lib/demos';
 import { BackstageDrawer } from './backstage-drawer';
 
 /**
- * The neutral Geena chrome every demo shares (brand ≠ chrome): the fictional-brand disclaimer,
- * the way back to the gallery, and the backstage drawer.
+ * The neutral Geena chrome every demo shares (brand ≠ chrome): a slim disclaimer bar, the way
+ * back to the gallery, and the backstage drawer.
  */
 export function DemoChrome({ demo }: { demo: DemoSlug }) {
   return (
     <>
       <footer
-        className="mx-auto mt-16 max-w-5xl px-6 pb-24 text-center text-[11px]"
-        style={{ color: 'var(--muted)', fontFamily: 'var(--font-inter)' }}
+        className="mt-16 border-t border-[color:var(--line)]"
+        style={{ fontFamily: 'var(--font-inter)' }}
       >
-        <p>
-          {DEMOS[demo].name} is a fictional brand — a Geena demo. Nothing here is a real shop,
-          club, or landlord; no payment happens and no data is stored beyond your demo session.
-        </p>
-        <p className="mt-1">
-          <a href="/" className="underline underline-offset-2 hover:opacity-80">
-            All Geena demos
-          </a>
-        </p>
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 py-6 text-[11px] text-[color:var(--muted)] sm:flex-row">
+          <p>
+            {DEMOS[demo].name} is a fictional brand — a{' '}
+            <span className="font-semibold">Geena demo</span>. Nothing is sold, stored or
+            underwritten here.
+          </p>
+          <nav className="flex items-center gap-4">
+            <a href="/" className="hover:text-[color:var(--ink)]">
+              All demos
+            </a>
+            <a
+              href="https://github.com/Identa-io/demo"
+              className="hover:text-[color:var(--ink)]"
+            >
+              Source
+            </a>
+          </nav>
+        </div>
       </footer>
       <BackstageDrawer demo={demo} />
     </>
@@ -38,9 +47,9 @@ export function StateNotice({
 }) {
   const palette =
     tone === 'ended'
-      ? 'border-red-200 bg-red-50 text-red-800'
+      ? 'border-red-200 bg-red-50 text-red-900'
       : tone === 'denied'
-        ? 'border-amber-200 bg-amber-50 text-amber-800'
+        ? 'border-amber-200 bg-amber-50 text-amber-900'
         : 'border-[color:var(--line)] bg-[color:var(--card)] text-[color:var(--ink)]';
   return (
     <div

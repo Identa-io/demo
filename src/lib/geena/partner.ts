@@ -124,8 +124,8 @@ export function getSlot(demo: DemoSlug, ds: DemoSession, requestId: string, slot
   return partnerGet<SlotResponse>(demo, ds, `/requests/${requestId}/slots/${slotId}`, 'json');
 }
 
-/** Streams file content (Nyckel's landlord view) — the browser never holds a Geena token, so
- * the demo proxies the authenticated download. */
+/** Streams file content (Vagn's desk view) — the browser never holds a Geena token, so the
+ * demo proxies the authenticated download. */
 export function getSlotFile(
   demo: DemoSlug,
   ds: DemoSession,

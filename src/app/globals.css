@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 /*
- * One page, three worlds. Each demo carries its own tokens under [data-demo=…]; the Geena
+ * One deployable, three worlds. Each demo carries its own tokens under [data-demo=…]; the Geena
  * connect button deliberately ignores all of them — three different brands, one recognizable
  * button, because the button IS the product shot.
  */
@@ -9,11 +9,12 @@
 :root {
   /* The neutral Geena shell (landing page + demo chrome). */
   --bg: #f6f5f8;
-  --ink: #17151f;
-  --muted: #6f6b7d;
+  --ink: #191724;
+  --muted: #6e6a7c;
   --card: #ffffff;
   --line: #e6e3ec;
   --accent: #4f46e5;
+  --accent-ink: #ffffff;
   --accent-soft: #eef2ff;
   /* The one constant across every demo. */
   --geena: #4f46e5;
@@ -22,42 +23,47 @@
   --font-body: var(--font-inter);
 }
 
-[data-demo='blomma'] {
-  --bg: #faf6f0;
-  --ink: #1e4d3b;
-  --muted: #7d7466;
-  --card: #fffdf9;
-  --line: #ece4d6;
-  --accent: #d96c47;
-  --accent-soft: #f7e3dc;
+/* Vinst — fund platform: paper, deep green ink, a restrained brass accent. */
+[data-demo='vinst'] {
+  --bg: #f7f6f1;
+  --ink: #10231d;
+  --muted: #6d7268;
+  --card: #fffefb;
+  --line: #e5e1d4;
+  --accent: #1e6e54;
+  --accent-ink: #ffffff;
+  --accent-soft: #e7efe9;
+  --brass: #a8823f;
   --font-display: var(--font-fraunces);
   --font-body: var(--font-inter);
 }
 
-[data-demo='fckomet'] {
-  --bg: #f4f6fb;
-  --ink: #101426;
-  --muted: #5d647c;
+/* Resa — travel insurance: cool coastal blues, calm and legible. */
+[data-demo='resa'] {
+  --bg: #f4f8fa;
+  --ink: #0f2a3d;
+  --muted: #5e7385;
   --card: #ffffff;
-  --line: #dfe4f0;
-  --accent: #ffd60a;
-  --accent-soft: #fff7cc;
-  --navy: #0b1f4b;
-  --sky: #3e7cb1;
-  --font-display: var(--font-archivo);
-  --font-body: var(--font-grotesk);
+  --line: #dce8ef;
+  --accent: #0e6fa8;
+  --accent-ink: #ffffff;
+  --accent-soft: #e2f0f8;
+  --sun: #e8a13c;
+  --font-display: var(--font-manrope);
+  --font-body: var(--font-inter);
 }
 
-[data-demo='nyckel'] {
-  --bg: #f7f7f5;
-  --ink: #1a1a1a;
-  --muted: #75726b;
+/* Vagn — car rental: asphalt ink, signal orange, tight grotesk. */
+[data-demo='vagn'] {
+  --bg: #f4f4f2;
+  --ink: #15171c;
+  --muted: #6d6f75;
   --card: #ffffff;
-  --line: #e7e5df;
-  --accent: #c8a272;
-  --accent-soft: #f2e9dc;
-  --steel: #5b7c99;
-  --font-display: var(--font-manrope);
+  --line: #e3e2dd;
+  --accent: #d9542b;
+  --accent-ink: #ffffff;
+  --accent-soft: #f9e5dc;
+  --font-display: var(--font-grotesk);
   --font-body: var(--font-inter);
 }
 
@@ -65,13 +71,80 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: 'ss01' on, 'cv05' on;
 }
 
 .font-display {
   font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* The staggered checkout fill — fields arrive one by one, ~120ms apart. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Shared surfaces — one card language across the brands, tinted by their tokens. */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  font-size: 13px;
+  transition: opacity 120ms ease;
+}
+.btn-primary:hover {
+  opacity: 0.9;
+}
+.btn-primary:disabled {
+  opacity: 0.4;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  font-size: 13px;
+  transition: border-color 120ms ease;
+}
+.btn-secondary:hover {
+  border-color: var(--muted);
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.field-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* The staggered form fill — values arrive one by one, ~120ms apart. */
 @keyframes fill-in {
   from {
     opacity: 0;

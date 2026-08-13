@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isDemoSlug } from '@/lib/demos';
 import { revokeConnection } from '@/lib/geena/oauth';
-import { clearNyckelSession } from '@/lib/nyckel-auth';
+import { clearVagnSession } from '@/lib/vagn-auth';
 import { clearDemoSession, demoSession, getSession } from '@/lib/session';
 
 /**
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     await revokeConnection(demo, ds);
   } finally {
     clearDemoSession(ds);
-    if (demo === 'nyckel') await clearNyckelSession();
+    if (demo === 'vagn') await clearVagnSession();
   }
   return NextResponse.json({ ok: true });
 }

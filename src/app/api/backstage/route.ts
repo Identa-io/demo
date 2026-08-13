@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isDemoSlug } from '@/lib/demos';
 import { demoSession, getSession } from '@/lib/session';
-import blomma from '../../../../manifests/blomma.json';
-import fckomet from '../../../../manifests/fckomet.json';
-import nyckel from '../../../../manifests/nyckel.json';
+import vinst from '../../../../manifests/vinst.json';
+import resa from '../../../../manifests/resa.json';
+import vagn from '../../../../manifests/vagn.json';
 
-const MANIFESTS = { blomma, fckomet, nyckel } as const;
+const MANIFESTS = { vinst, resa, vagn } as const;
 
 /**
  * The backstage drawer's data: the manifest this demo opens, the live connection ids, and the

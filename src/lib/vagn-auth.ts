@@ -1,22 +1,22 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { cookies } from 'next/headers';
-import { nyckelSessionSecret } from './env';
+import { vagnSessionSecret } from './env';
 
 /**
- * Nyckel's own session — the demo APP's session, not Geena's. There is no password behind it:
+ * Vagn's own session — the demo APP's session, not Geena's. There is no password behind it:
  * completing the Geena hop is the login, and this cookie is simply "that already happened here".
- * Logging out deletes it (and the stored tokens) while the Geena-side connection stays intact —
- * session control belongs to the app, data control belongs to the person's Geena.
+ * Logging out deletes it (and the locally stored tokens) while the Geena-side connection stays
+ * intact — session control belongs to the app, data control belongs to the person.
  */
 
-const COOKIE = 'nyckel_session';
+const COOKIE = 'vagn_session';
 const TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function sign(payload: string): string {
-  return createHmac('sha256', nyckelSessionSecret()).update(payload).digest('base64url');
+  return createHmac('sha256', vagnSessionSecret()).update(payload).digest('base64url');
 }
 
-export async function issueNyckelSession(sid: string): Promise<void> {
+export async function issueVagnSession(sid: string): Promise<void> {
   const payload = `${sid}.${Date.now() + TTL_MS}`;
   const jar = await cookies();
   jar.set(COOKIE, `${payload}.${sign(payload)}`, {
@@ -28,7 +28,7 @@ export async function issueNyckelSession(sid: string): Promise<void> {
   });
 }
 
-export async function verifyNyckelSession(sid: string): Promise<boolean> {
+export async function verifyVagnSession(sid: string): Promise<boolean> {
   const jar = await cookies();
   const raw = jar.get(COOKIE)?.value;
   if (!raw) return false;
@@ -43,7 +43,7 @@ export async function verifyNyckelSession(sid: string): Promise<boolean> {
   return cookieSid === sid && Number(exp) > Date.now();
 }
 
-export async function clearNyckelSession(): Promise<void> {
+export async function clearVagnSession(): Promise<void> {
   const jar = await cookies();
   jar.delete(COOKIE);
 }

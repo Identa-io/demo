@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isDemoSlug } from '@/lib/demos';
 import { demoCredentials, geenaDashboardUrl } from '@/lib/env';
 import { getSlot, getStatus, type ServedRecord, type StatusGroup } from '@/lib/geena/partner';
-import { verifyNyckelSession } from '@/lib/nyckel-auth';
+import { verifyVagnSession } from '@/lib/vagn-auth';
 import { demoSession, getSession } from '@/lib/session';
 
 /**
@@ -10,7 +10,7 @@ import { demoSession, getSession } from '@/lib/session';
  * am I connected, what did the person grant so far, and what are the values.
  *
  * Granted slots are served fresh on every call — the partner plane returns the CURRENT version
- * of a granted resource, which is why "change your address in Geena, reorder here" just works.
+ * of a granted resource, which is why "change your address in Geena, come back here" just works.
  * A revoked connection surfaces as a refusal mid-request; the demos render that as the honest
  * "access ended" state rather than an error page.
  */
@@ -29,14 +29,14 @@ export interface DataResponse {
   configured: boolean;
   configureHint?: string;
   connected: boolean;
-  nyckelAuthed?: boolean;
+  vagnAuthed?: boolean;
   state?: string;
   requestId?: string;
   /** Deep link to the person's own grant screen on the Geena dashboard. */
   grantUrl?: string;
   groups?: StatusGroup[];
   slots?: DataSlot[];
-  applications?: string[];
+  bookings?: string[];
   /** Set when the connection stopped serving (revoked/expired) — the "access ended" state. */
   accessEnded?: boolean;
 }
@@ -60,10 +60,10 @@ export async function GET(request: NextRequest) {
 
   const { sid, session } = await getSession();
   const ds = demoSession(session, demo);
-  const nyckelAuthed = demo === 'nyckel' ? await verifyNyckelSession(sid) : undefined;
+  const vagnAuthed = demo === 'vagn' ? await verifyVagnSession(sid) : undefined;
 
   if (!ds.tokens || !ds.requestId) {
-    const body: DataResponse = { configured: true, connected: false, nyckelAuthed };
+    const body: DataResponse = { configured: true, connected: false, vagnAuthed };
     return NextResponse.json(body);
   }
 
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
     const body: DataResponse = {
       configured: true,
       connected: true,
-      nyckelAuthed,
+      vagnAuthed,
       state: status.state,
       requestId: ds.requestId,
       grantUrl: `${geenaDashboardUrl()}/personal/connections/${ds.requestId}`,
@@ -108,20 +108,20 @@ export async function GET(request: NextRequest) {
             : record
         ),
       })),
-      applications: demo === 'nyckel' ? ds.applications : undefined,
+      bookings: demo === 'vagn' ? ds.bookings : undefined,
       accessEnded: status.state !== 'active' && status.state !== 'pending',
     };
     return NextResponse.json(body);
   } catch {
     // Serving refused mid-connection: revoked, expired, or the request is gone. Honest state,
-    // not a 500 — this is Nyckel's finale working as designed.
+    // not a 500 — this is Vagn's finale working as designed.
     const body: DataResponse = {
       configured: true,
       connected: true,
-      nyckelAuthed,
+      vagnAuthed,
       requestId: ds.requestId,
       accessEnded: true,
-      applications: demo === 'nyckel' ? ds.applications : undefined,
+      bookings: demo === 'vagn' ? ds.bookings : undefined,
     };
     return NextResponse.json(body);
   }

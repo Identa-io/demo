@@ -4,39 +4,44 @@
  * entry here, one route group, one manifest, three env vars.
  */
 
-export type DemoSlug = 'blomma' | 'fckomet' | 'nyckel';
+export type DemoSlug = 'vinst' | 'resa' | 'vagn';
 
 export interface DemoDefinition {
   slug: DemoSlug;
   name: string;
-  /** One sentence for the landing card: what the scenario is. */
+  /** One line for the landing card: what the scenario is. */
   scenario: string;
-  /** One sentence for the landing card: which Geena capability it proves. */
+  /** One line for the landing card: which Geena capability it proves. */
   proves: string;
+  /** Short capability tags for the landing card. */
+  tags: string[];
   /** Where the connect ceremony returns the visitor inside the demo. */
   returnPath: string;
 }
 
 export const DEMOS: Record<DemoSlug, DemoDefinition> = {
-  blomma: {
-    slug: 'blomma',
-    name: 'Blomma',
-    scenario: 'A flower shop with no accounts — pick a bouquet, check out.',
-    proves: 'Zero-typing autofill: your details arrive from your vault and stay current.',
-    returnPath: '/checkout',
+  vinst: {
+    slug: 'vinst',
+    name: 'Vinst',
+    scenario: 'Open an account with a fund platform — the onboarding form writes itself.',
+    proves: 'KYC-grade autofill: identity, payout account and tax residency arrive from the vault, current on every visit.',
+    tags: ['account opening', 'autofill', 'KYC data'],
+    returnPath: '/register',
   },
-  fckomet: {
-    slug: 'fckomet',
-    name: 'FC Komet',
-    scenario: 'Register your children for the football season.',
-    proves: 'Family data without "child 1 / child 2" forms — you choose who to share.',
+  resa: {
+    slug: 'resa',
+    name: 'Resa',
+    scenario: 'Buy travel insurance for yourself and your children in one sitting.',
+    proves: 'Family data without "child 1 / child 2" forms — you decide which children to cover, the insurer never learns more.',
+    tags: ['family subjects', 'per-person pricing'],
     returnPath: '/',
   },
-  nyckel: {
-    slug: 'nyckel',
-    name: 'Nyckel',
-    scenario: 'An apartment platform with a real account — and no password, ever.',
-    proves: 'Geena as the entire login stack, documents without attachments, revoke that works.',
+  vagn: {
+    slug: 'vagn',
+    name: 'Vagn',
+    scenario: 'Rent a car with a real account — and no password, ever.',
+    proves: 'Geena as the whole login stack, a licence shared without attachments, and a revocation that actually ends access.',
+    tags: ['passwordless login', 'documents', 'revoke'],
     returnPath: '/account',
   },
 };
@@ -49,9 +54,9 @@ export function isDemoSlug(value: string | null | undefined): value is DemoSlug 
 
 /**
  * The demos run in two modes with identical code paths:
- *  - subdomain mode (production shape): blomma.demo.test.geena.eu — the middleware rewrites
- *    `/checkout` to `/blomma/checkout`, so in-page links need no prefix;
- *  - path mode (plain localhost): everything under one origin, links need the `/blomma` prefix.
+ *  - subdomain mode (production shape): vinst.demo.test.geena.eu — the middleware rewrites
+ *    `/register` to `/vinst/register`, so in-page links need no prefix;
+ *  - path mode (plain localhost): everything under one origin, links need the `/vinst` prefix.
  * basePath() answers "what prefix do links need for this request's host".
  */
 export function demoBasePath(host: string | null, demo: DemoSlug): string {

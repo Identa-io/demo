@@ -44,8 +44,25 @@ export function addressLines(data: Record<string, unknown> | undefined): string[
   ].filter(Boolean);
 }
 
-/** One family member as FC Komet sees them: the pairwise alias, never a vault id. */
-export interface PlayerView {
+/** "…4417" — enough to recognise an account, never the whole number on screen. */
+export function maskedAccount(data: Record<string, unknown> | undefined): string {
+  const number = str(data?.accountNumber);
+  if (!number) return '';
+  const bank = str(data?.bankName);
+  const tail = number.replace(/\s/g, '').slice(-4);
+  return [bank, `···· ${tail}`].filter(Boolean).join(' ');
+}
+
+export function taxResidency(data: Record<string, unknown> | undefined): string {
+  const country = str(data?.taxResidenceCountry);
+  const id = str(data?.taxID);
+  if (!country && !id) return '';
+  const maskedId = id ? `TIN ····${id.replace(/\s/g, '').slice(-3)}` : '';
+  return [country, maskedId].filter(Boolean).join(' · ');
+}
+
+/** One family member as the organization sees them: the pairwise alias, never an identity. */
+export interface FamilyMemberView {
   alias: string;
   relation: string;
   name: string;
@@ -54,11 +71,11 @@ export interface PlayerView {
 
 /**
  * Groups subject-slot records by person. Each served record about a family member carries a
- * `subject` block — same alias across slots of one connection, meaningless outside it.
+ * `subject` block — the same alias across slots of one connection, meaningless outside it.
  */
-export function playersFromSlots(slots: DataSlot[] | undefined): PlayerView[] {
-  const byAlias = new Map<string, PlayerView>();
-  const collect = (record: ServedRecord, apply: (p: PlayerView) => void) => {
+export function familyFromSlots(slots: DataSlot[] | undefined): FamilyMemberView[] {
+  const byAlias = new Map<string, FamilyMemberView>();
+  const collect = (record: ServedRecord, apply: (p: FamilyMemberView) => void) => {
     if (!record.subject) return;
     const entry = byAlias.get(record.subject.alias) ?? {
       alias: record.subject.alias,

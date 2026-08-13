@@ -2,7 +2,7 @@ import type { DemoSlug } from './demos';
 
 /**
  * Runtime configuration. Per demo: the OAuth client credentials and the published manifest id.
- * Only the client secrets (and Nyckel's session secret) are secrets — manifest ids travel in
+ * Only the client secrets (and Vagn's session secret) are secrets — manifest ids travel in
  * browser-visible authorize URLs, and the client id is the app's public slug.
  */
 
@@ -21,9 +21,9 @@ export interface DemoCredentials {
 }
 
 const ENV_PREFIX: Record<DemoSlug, string> = {
-  blomma: 'BLOMMA',
-  fckomet: 'FCKOMET',
-  nyckel: 'NYCKEL',
+  vinst: 'VINST',
+  resa: 'RESA',
+  vagn: 'VAGN',
 };
 
 export function demoCredentials(demo: DemoSlug): DemoCredentials {
@@ -39,6 +39,6 @@ export function demoCredentials(demo: DemoSlug): DemoCredentials {
   return { clientId, clientSecret, manifestId };
 }
 
-export function nyckelSessionSecret(): string {
-  return process.env.NYCKEL_SESSION_SECRET ?? 'change-me';
+export function vagnSessionSecret(): string {
+  return process.env.VAGN_SESSION_SECRET ?? 'change-me';
 }

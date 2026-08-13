@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DEMO_SLUGS, demoBasePath, type DemoSlug } from '@/lib/demos';
 import { exchangeCode } from '@/lib/geena/oauth';
-import { issueNyckelSession } from '@/lib/nyckel-auth';
+import { issueVagnSession } from '@/lib/vagn-auth';
 import { demoSession, getSession } from '@/lib/session';
 
 /**
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     });
     ds.tokens = tokens;
     if (requestId) ds.requestId = requestId;
-    if (demo === 'nyckel') await issueNyckelSession(sid);
+    if (demo === 'vagn') await issueVagnSession(sid);
     return NextResponse.redirect(`${base}${pending.returnTo}?connected=1`);
   } catch {
     return NextResponse.redirect(`${base}${pending.returnTo}?failed=1`);

@@ -1,0 +1,28 @@
+{
+  "name": "Resa travel insurance",
+  "initiation": "BOTH",
+  "groups": [
+    { "id": "policyholder", "label": "Policyholder", "order": 1 },
+    { "id": "travellers", "label": "Insured travellers", "order": 2 }
+  ],
+  "subjects": [
+    { "id": "child", "relation": "CHILD", "label": "Each child you cover", "repeat": true }
+  ],
+  "slots": [
+    { "label": "Full name", "group": "policyholder", "kind": "SCHEMA", "target": "PersonFullName", "verbs": [] },
+    { "label": "Email", "group": "policyholder", "kind": "SCHEMA", "target": "PersonEmail", "verbs": [] },
+    { "label": "Date of birth", "group": "policyholder", "kind": "SCHEMA", "target": "PersonBirthDetails", "verbs": [] },
+    { "label": "Child's name", "group": "travellers", "subject": "child", "kind": "SCHEMA", "target": "PersonFullName", "verbs": [] },
+    { "label": "Child's date of birth", "group": "travellers", "subject": "child", "kind": "SCHEMA", "target": "PersonBirthDetails", "verbs": [] }
+  ],
+  "terms": {
+    "legalBasis": "CONSENT",
+    "purpose": "DATA_SHARE",
+    "retentionDays": 365,
+    "retentionAction": "AUTO_DELETE",
+    "rightToErasure": true,
+    "rightToRectification": true,
+    "allowDownload": false,
+    "privacyPolicyUrl": "https://demo.test.geena.eu/resa/privacy"
+  }
+}
