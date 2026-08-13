@@ -87,10 +87,3 @@ demos sell the UX; backstage sells the integration.
 All brands are fictional; all figures (fund returns, premiums, rental prices) are illustrative.
 No payments happen, and nothing is stored beyond an in-memory demo session (a real partner would
 persist tokens encrypted — the comments say so where it matters).
-
-## Not in v1 (yet)
-
-Per the plan of record (`geena-demo-apps.md` in the workspace): the seeded booth account script
-(`scripts/seed-demo-account.ts`) and the idempotent `scripts/publish-manifests.ts` are still to
-come — today the orgs, apps and manifests are set up by hand per the steps above. No write
-verbs either: every manifest is a plain ask, which is the v1 story.
