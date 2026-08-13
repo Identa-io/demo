@@ -1,0 +1,26 @@
+{
+  "name": "Nyckel rental application",
+  "initiation": "BOTH",
+  "groups": [
+    { "id": "applicant", "label": "Applicant", "order": 1 },
+    { "id": "income", "label": "Income", "order": 2 },
+    { "id": "documents", "label": "Documents", "order": 3 }
+  ],
+  "slots": [
+    { "label": "Full name", "group": "applicant", "kind": "SCHEMA", "target": "PersonFullName", "verbs": [] },
+    { "label": "Email", "group": "applicant", "kind": "SCHEMA", "target": "PersonEmail", "verbs": [] },
+    { "label": "Current employment", "group": "income", "kind": "SCHEMA", "target": "PersonJob", "verbs": [] },
+    { "label": "Financial profile", "group": "income", "kind": "SCHEMA", "target": "PersonFinancialProfile", "verbs": [] },
+    { "label": "Salary slips (last 3 months)", "group": "documents", "kind": "PERSONAL_FILES", "verbs": [] }
+  ],
+  "terms": {
+    "legalBasis": "CONSENT",
+    "purpose": "COMPLIANCE_REVIEW",
+    "retentionDays": 90,
+    "retentionAction": "AUTO_DELETE",
+    "rightToErasure": true,
+    "rightToRectification": true,
+    "allowDownload": false,
+    "privacyPolicyUrl": "https://demo.test.geena.eu/nyckel/privacy"
+  }
+}

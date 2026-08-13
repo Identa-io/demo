@@ -1,0 +1,90 @@
+@import 'tailwindcss';
+
+/*
+ * One page, three worlds. Each demo carries its own tokens under [data-demo=…]; the Geena
+ * connect button deliberately ignores all of them — three different brands, one recognizable
+ * button, because the button IS the product shot.
+ */
+
+:root {
+  /* The neutral Geena shell (landing page + demo chrome). */
+  --bg: #f6f5f8;
+  --ink: #17151f;
+  --muted: #6f6b7d;
+  --card: #ffffff;
+  --line: #e6e3ec;
+  --accent: #4f46e5;
+  --accent-soft: #eef2ff;
+  /* The one constant across every demo. */
+  --geena: #4f46e5;
+  --geena-ink: #ffffff;
+  --font-display: var(--font-inter);
+  --font-body: var(--font-inter);
+}
+
+[data-demo='blomma'] {
+  --bg: #faf6f0;
+  --ink: #1e4d3b;
+  --muted: #7d7466;
+  --card: #fffdf9;
+  --line: #ece4d6;
+  --accent: #d96c47;
+  --accent-soft: #f7e3dc;
+  --font-display: var(--font-fraunces);
+  --font-body: var(--font-inter);
+}
+
+[data-demo='fckomet'] {
+  --bg: #f4f6fb;
+  --ink: #101426;
+  --muted: #5d647c;
+  --card: #ffffff;
+  --line: #dfe4f0;
+  --accent: #ffd60a;
+  --accent-soft: #fff7cc;
+  --navy: #0b1f4b;
+  --sky: #3e7cb1;
+  --font-display: var(--font-archivo);
+  --font-body: var(--font-grotesk);
+}
+
+[data-demo='nyckel'] {
+  --bg: #f7f7f5;
+  --ink: #1a1a1a;
+  --muted: #75726b;
+  --card: #ffffff;
+  --line: #e7e5df;
+  --accent: #c8a272;
+  --accent-soft: #f2e9dc;
+  --steel: #5b7c99;
+  --font-display: var(--font-manrope);
+  --font-body: var(--font-inter);
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* The staggered checkout fill — fields arrive one by one, ~120ms apart. */
+@keyframes fill-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+    background: var(--accent-soft);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    background: transparent;
+  }
+}
+
+.fill-in {
+  animation: fill-in 0.45s ease-out both;
+}
