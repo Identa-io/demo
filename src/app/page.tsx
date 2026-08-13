@@ -32,15 +32,12 @@ export default async function Landing() {
     <div className="min-h-screen">
       <main className="mx-auto max-w-6xl px-6">
         <header className="flex items-center justify-between py-7">
-          <span className="flex items-center gap-2.5 text-[15px] font-bold tracking-tight">
-            <span
-              className="flex h-7 w-7 items-center justify-center rounded-lg text-[13px] font-black text-white"
-              style={{ background: 'var(--geena)' }}
-              aria-hidden
-            >
-              G
+          <span className="flex items-baseline gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset */}
+            <img src="/geena/logo-black.svg" alt="Geena" className="h-[22px] w-auto" />
+            <span className="text-[15px] font-medium tracking-tight text-[color:var(--muted)]">
+              demos
             </span>
-            Geena demos
           </span>
           <a
             href="https://github.com/Identa-io/demo"
