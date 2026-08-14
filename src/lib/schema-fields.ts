@@ -9,7 +9,20 @@ export interface SchemaField {
   label: string;
   type?: 'text' | 'email' | 'tel' | 'date' | 'number';
   placeholder?: string;
+  /** When set, the field renders as a pick from these — a short list beats a free field. */
+  options?: { value: string; label: string }[];
 }
+
+/** The demo's market: Nordics + nearby. Values are ISO codes — what the schema stores. */
+const COUNTRIES: { value: string; label: string }[] = [
+  { value: 'SE', label: 'Sweden' },
+  { value: 'DK', label: 'Denmark' },
+  { value: 'NO', label: 'Norway' },
+  { value: 'FI', label: 'Finland' },
+  { value: 'DE', label: 'Germany' },
+  { value: 'NL', label: 'Netherlands' },
+  { value: 'PL', label: 'Poland' },
+];
 
 export const SCHEMA_FIELDS: Record<string, SchemaField[]> = {
   PersonFullName: [
@@ -22,7 +35,7 @@ export const SCHEMA_FIELDS: Record<string, SchemaField[]> = {
     { key: 'streetAddress', label: 'Street address' },
     { key: 'postalCode', label: 'Postal code' },
     { key: 'city', label: 'City' },
-    { key: 'addressCountry', label: 'Country', placeholder: 'SE' },
+    { key: 'addressCountry', label: 'Country', options: COUNTRIES },
   ],
   PersonBirthDetails: [{ key: 'dateOfBirth', label: 'Date of birth', type: 'date' }],
   PersonJob: [
@@ -40,7 +53,7 @@ export const SCHEMA_FIELDS: Record<string, SchemaField[]> = {
     { key: 'currency', label: 'Currency', placeholder: 'EUR' },
   ],
   PersonTaxStatus: [
-    { key: 'taxResidenceCountry', label: 'Tax residence country', placeholder: 'SE' },
+    { key: 'taxResidenceCountry', label: 'Tax residence country', options: COUNTRIES },
     { key: 'taxID', label: 'Tax identification number' },
   ],
 };
@@ -59,10 +72,13 @@ export const SINGLETON_TARGETS = new Set([
   'PersonJob',
 ]);
 
-/** Label suggestions for multi-instance targets — the org's hint for naming a new value. */
-export const LABEL_HINTS: Record<string, string> = {
-  PersonEmail: 'e.g. Personal, Work',
-  PersonPhone: 'e.g. Mobile, Work',
-  PersonAddress: 'e.g. Home, Work',
-  PersonBankAccount: 'e.g. Main account',
+/**
+ * Label presets for multi-instance targets — the org supplies the vocabulary, the user taps one
+ * (or writes their own). The first entry is the default, so a create is never nameless.
+ */
+export const LABEL_OPTIONS: Record<string, string[]> = {
+  PersonEmail: ['Personal', 'Work'],
+  PersonPhone: ['Mobile', 'Work', 'Home'],
+  PersonAddress: ['Home', 'Work', 'Summer house'],
+  PersonBankAccount: ['Main account', 'Savings', 'Joint'],
 };

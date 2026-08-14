@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { DataSlot } from '@/app/api/data/route';
 import type { CandidateItem, CandidatesResponse } from '@/lib/geena/partner';
 import type { DemoSlug } from '@/lib/demos';
-import { LABEL_HINTS, SCHEMA_FIELDS, SINGLETON_TARGETS } from '@/lib/schema-fields';
+import { LABEL_OPTIONS, SCHEMA_FIELDS, SINGLETON_TARGETS } from '@/lib/schema-fields';
 
 /**
  * The in-app fill control for one pending slot, open by default — no extra click between the
@@ -30,9 +30,12 @@ export function SlotFiller({
   person?: string;
   onFilled: () => void;
 }) {
+  const labelOptions = slot.target ? LABEL_OPTIONS[slot.target] : undefined;
+
   const [candidates, setCandidates] = useState<CandidateItem[] | null>(null);
   const [values, setValues] = useState<Record<string, string>>({});
-  const [label, setLabel] = useState('');
+  const [label, setLabel] = useState(labelOptions?.[0] ?? '');
+  const [customLabel, setCustomLabel] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -120,17 +123,38 @@ export function SlotFiller({
       return fetch('/api/fill/upload', { method: 'POST', body: form });
     });
 
-  const fieldInputs = fields.map((field) => (
-    <input
-      key={field.key}
-      type={field.type ?? 'text'}
-      placeholder={field.placeholder ?? field.label}
-      aria-label={field.label}
-      value={values[field.key] ?? ''}
-      onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
-      className="rounded-lg border border-[color:var(--line)] px-2.5 py-1.5 text-[12.5px]"
-    />
-  ));
+  const fieldInputs = fields.map((field) =>
+    field.options ? (
+      <select
+        key={field.key}
+        aria-label={field.label}
+        value={values[field.key] ?? ''}
+        onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
+        className={`rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-2 py-1.5 text-[12.5px] ${
+          values[field.key] ? '' : 'text-[color:var(--muted)]'
+        }`}
+      >
+        <option value="" disabled>
+          {field.label}
+        </option>
+        {field.options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    ) : (
+      <input
+        key={field.key}
+        type={field.type ?? 'text'}
+        placeholder={field.placeholder ?? field.label}
+        aria-label={field.label}
+        value={values[field.key] ?? ''}
+        onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
+        className="rounded-lg border border-[color:var(--line)] px-2.5 py-1.5 text-[12.5px]"
+      />
+    ),
+  );
   const empty = Object.values(values).every((v) => !v);
 
   return (
@@ -213,15 +237,44 @@ export function SlotFiller({
               <p className="field-label">{candidates.length ? 'Or add another' : 'Add it'}</p>
             )}
             <div className="mt-1.5 grid gap-2 sm:grid-cols-2">
-              <input
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
-                placeholder={
-                  (slot.target && LABEL_HINTS[slot.target]) || 'Label — how you find it later'
-                }
-                aria-label="Label"
-                className="rounded-lg border border-[color:var(--line)] px-2.5 py-1.5 text-[12.5px] sm:col-span-2"
-              />
+              {labelOptions && !customLabel ? (
+                <div className="flex flex-wrap items-center gap-1.5 sm:col-span-2">
+                  {labelOptions.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setLabel(option)}
+                      aria-pressed={label === option}
+                      className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+                        label === option
+                          ? 'border-[color:var(--accent)] font-semibold text-[color:var(--accent)]'
+                          : 'border-[color:var(--line)] text-[color:var(--muted)] hover:border-[color:var(--accent)]'
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomLabel(true);
+                      setLabel('');
+                    }}
+                    className="rounded-full border border-dashed border-[color:var(--line)] px-2.5 py-1 text-[11px] text-[color:var(--muted)] hover:border-[color:var(--accent)]"
+                  >
+                    Other…
+                  </button>
+                </div>
+              ) : (
+                <input
+                  value={label}
+                  onChange={(e) => setLabel(e.target.value)}
+                  placeholder="Label — how you find it later"
+                  aria-label="Label"
+                  autoFocus={customLabel}
+                  className="rounded-lg border border-[color:var(--line)] px-2.5 py-1.5 text-[12.5px] sm:col-span-2"
+                />
+              )}
               {fieldInputs}
               <button
                 onClick={() => void create()}
