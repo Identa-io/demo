@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DEMO_SLUGS, demoBasePath, type DemoSlug } from '@/lib/demos';
+import { DEMO_SLUGS, demoBasePath, externalOrigin, type DemoSlug } from '@/lib/demos';
 import { exchangeCode } from '@/lib/geena/oauth';
 import { issueVagnSession } from '@/lib/vagn-auth';
 import { demoSession, getSession } from '@/lib/session';
@@ -23,14 +23,15 @@ export async function GET(request: NextRequest) {
       break;
     }
   }
+  const origin = externalOrigin(request.headers, request.nextUrl.origin);
   if (!demo || !state) {
-    return NextResponse.redirect(`${request.nextUrl.origin}/?error=state`);
+    return NextResponse.redirect(`${origin}/?error=state`);
   }
 
   const ds = demoSession(session, demo);
   const pending = ds.pending!;
   delete ds.pending;
-  const base = `${request.nextUrl.origin}${demoBasePath(request.headers.get('host'), demo)}`;
+  const base = `${origin}${demoBasePath(request.headers.get('host'), demo)}`;
 
   // The person said no (or the ceremony refused). Render it as an answer, not an error page.
   if (params.get('error')) {
