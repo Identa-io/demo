@@ -193,23 +193,36 @@ async function partnerSend<T>(
   body: BodyInit,
   contentType?: string,
 ): Promise<T> {
-  const tokens = await liveTokens(demo, ds);
-  const headers: Record<string, string> = { authorization: `Bearer ${tokens.accessToken}` };
-  if (contentType) headers['content-type'] = contentType;
-  const started = Date.now();
-  const res = await fetch(`${geenaApiUrl()}/partner/v1${path}`, {
-    method,
-    headers,
-    body,
-    cache: 'no-store',
-  });
-  logCall(ds, {
-    at: started,
-    method,
-    path: `/partner/v1${path}`,
-    status: res.status,
-    ms: Date.now() - started,
-  });
+  const call = async () => {
+    const tokens = await liveTokens(demo, ds);
+    const headers: Record<string, string> = { authorization: `Bearer ${tokens.accessToken}` };
+    if (contentType) headers['content-type'] = contentType;
+    const started = Date.now();
+    const res = await fetch(`${geenaApiUrl()}/partner/v1${path}`, {
+      method,
+      headers,
+      body,
+      cache: 'no-store',
+    });
+    logCall(ds, {
+      at: started,
+      method,
+      path: `/partner/v1${path}`,
+      status: res.status,
+      ms: Date.now() - started,
+    });
+    return res;
+  };
+
+  let res = await call();
+  // Same eager-refresh retry as partnerGet: an access token can outlive our clock but not the
+  // server's (VM clock drift, sleep/resume). Without this, every write button fails its first
+  // press inside the stale window — and "succeeds on the second click" only because the data
+  // poll healed the token in between. FormData/string bodies re-serialize safely on the retry.
+  if (res.status === 401 && ds.tokens) {
+    ds.tokens.expiresAt = 0;
+    res = await call();
+  }
   const payload = (await res.json().catch(() => ({}))) as T & { message?: string };
   if (!res.ok) {
     throw new Error(payload.message || `partner API ${path} refused (${res.status})`);
