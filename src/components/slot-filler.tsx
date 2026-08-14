@@ -4,15 +4,16 @@ import { useCallback, useEffect, useState } from 'react';
 import type { DataSlot } from '@/app/api/data/route';
 import type { CandidateItem, CandidatesResponse } from '@/lib/geena/partner';
 import type { DemoSlug } from '@/lib/demos';
+import { candidateSummary } from '@/lib/records';
 import { LABEL_OPTIONS, SCHEMA_FIELDS, SINGLETON_TARGETS } from '@/lib/schema-fields';
 
 /**
  * The in-app fill control for one pending slot, open by default — no extra click between the
  * person and their data. Two shapes, decided by the schema:
  *
- *  - SINGLETON (one legal name, one birth date): a value form, nothing to pick — under the hood
- *    the existing document (usually the empty starter) is attached and written, or created when
- *    none exists.
+ *  - SINGLETON (one legal name, one birth date): a value form, nothing to pick — prefilled from
+ *    the vault's current value when one exists; under the hood the existing document (often the
+ *    empty starter) is attached and written, or created when none exists.
  *  - MULTI-INSTANCE (emails, phones, addresses, accounts): the vault's candidates listed by
  *    their labels for a one-tap pick, plus an inline create that asks for a label of its own —
  *    "Work", "Mobile" — so the vault stays navigable.
@@ -34,6 +35,8 @@ export function SlotFiller({
 
   const [candidates, setCandidates] = useState<CandidateItem[] | null>(null);
   const [values, setValues] = useState<Record<string, string>>({});
+  const [prefilled, setPrefilled] = useState(false);
+  const [dirty, setDirty] = useState(false);
   const [label, setLabel] = useState(labelOptions?.[0] ?? '');
   const [customLabel, setCustomLabel] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -45,7 +48,6 @@ export function SlotFiller({
   const singleton = !!slot.target && SINGLETON_TARGETS.has(slot.target);
 
   const load = useCallback(async () => {
-    if (singleton) return; // nothing to pick between — the form IS the surface
     const params = new URLSearchParams({ demo, slot: slot.slotId });
     if (person) params.set('person', person);
     const res = await fetch(`/api/fill/candidates?${params}`, { cache: 'no-store' });
@@ -56,6 +58,25 @@ export function SlotFiller({
       return;
     }
     setCandidates(body.candidates ?? []);
+    // Singleton forms start from the vault's current value — the whole point of "one value per
+    // person" is that you correct it, not retype it. Never clobber something already typed.
+    const current = singleton ? body.candidates?.[0]?.data : undefined;
+    if (current) {
+      const initial: Record<string, string> = {};
+      for (const field of fields) {
+        const v = current[field.key];
+        if (typeof v === 'string' || typeof v === 'number') initial[field.key] = String(v);
+      }
+      if (Object.values(initial).some(Boolean)) {
+        setValues((prev) => {
+          if (Object.values(prev).some(Boolean)) return prev;
+          setPrefilled(true);
+          return initial;
+        });
+      }
+    }
+    // fields derives from slot.target, already a dependency via slot.slotId's stability.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [demo, slot.slotId, person, singleton]);
 
   useEffect(() => {
@@ -129,7 +150,10 @@ export function SlotFiller({
         key={field.key}
         aria-label={field.label}
         value={values[field.key] ?? ''}
-        onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
+        onChange={(e) => {
+          setDirty(true);
+          setValues((prev) => ({ ...prev, [field.key]: e.target.value }));
+        }}
         className={`rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-2 py-1.5 text-[12.5px] ${
           values[field.key] ? '' : 'text-[color:var(--muted)]'
         }`}
@@ -150,7 +174,10 @@ export function SlotFiller({
         placeholder={field.placeholder ?? field.label}
         aria-label={field.label}
         value={values[field.key] ?? ''}
-        onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
+        onChange={(e) => {
+          setDirty(true);
+          setValues((prev) => ({ ...prev, [field.key]: e.target.value }));
+        }}
         className="rounded-lg border border-[color:var(--line)] px-2.5 py-1.5 text-[12.5px]"
       />
     ),
@@ -187,19 +214,25 @@ export function SlotFiller({
           </button>
         </div>
       ) : singleton ? (
-        <div className="mt-2 grid gap-2 sm:grid-cols-2">
-          {fieldInputs}
-          <button
-            onClick={() => void setSingleton()}
-            disabled={busy || empty}
-            className="btn-primary !px-3 !py-1.5 !text-[12px] sm:col-span-2"
-          >
-            {busy ? 'Saving…' : 'Save & share'}
-          </button>
-          <p className="text-[10px] leading-relaxed text-[color:var(--muted)] sm:col-span-2">
-            One value per person — this fills it in your vault and shares it in the same act.
-          </p>
-        </div>
+        candidates === null ? (
+          <p className="mt-2 text-[12px] text-[color:var(--muted)]">Checking your vault…</p>
+        ) : (
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            {fieldInputs}
+            <button
+              onClick={() => void setSingleton()}
+              disabled={busy || empty}
+              className="btn-primary !px-3 !py-1.5 !text-[12px] sm:col-span-2"
+            >
+              {busy ? 'Saving…' : prefilled && !dirty ? 'Confirm & share' : 'Save & share'}
+            </button>
+            <p className="text-[10px] leading-relaxed text-[color:var(--muted)] sm:col-span-2">
+              {prefilled
+                ? 'Filled from your vault — correct it if life moved on, then share.'
+                : 'One value per person — this fills it in your vault and shares it in the same act.'}
+            </p>
+          </div>
+        )
       ) : (
         <>
           {candidates === null ? (
@@ -211,10 +244,17 @@ export function SlotFiller({
                   <button
                     onClick={() => void attach(candidate.resourceId)}
                     disabled={busy || candidate.granted}
-                    className="flex w-full items-center justify-between gap-2 rounded-lg border border-[color:var(--line)] px-3 py-2 text-[12.5px] hover:border-[color:var(--accent)] disabled:opacity-50"
+                    className="flex w-full items-center justify-between gap-2 rounded-lg border border-[color:var(--line)] px-3 py-2 hover:border-[color:var(--accent)] disabled:opacity-50"
                   >
-                    <span className="vault-value truncate">
-                      {candidate.name || candidate.label || candidate.fileName || 'Item'}
+                    <span className="min-w-0 flex-1 text-left">
+                      <span className="block truncate text-[12px] font-medium">
+                        {candidate.name || candidate.label || candidate.fileName || 'Item'}
+                      </span>
+                      {candidateSummary(slot.target, candidate.data) && (
+                        <span className="vault-value block truncate text-[11.5px] text-[color:var(--muted)]">
+                          {candidateSummary(slot.target, candidate.data)}
+                        </span>
+                      )}
                     </span>
                     <span
                       className="shrink-0 text-[10px] font-semibold"

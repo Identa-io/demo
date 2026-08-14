@@ -147,13 +147,19 @@ export function getSlotFile(
   return partnerGet(demo, ds, `/requests/${requestId}/slots/${slotId}/files/${fileId}`, 'raw');
 }
 
-/** One resource that could back a slot — metadata only, values never appear here. */
+/**
+ * One resource that could back a slot. Document rows carry their current `data` when the
+ * user's key context can open them (fill-surface bound 2 as amended 2026-08-14) — that is what
+ * lets the picker show WHICH email and prefill singleton forms; undecryptable rows, files and
+ * ID documents are metadata only.
+ */
 export interface CandidateItem {
   resourceId: string;
   type: 'document' | 'id_document' | 'file';
   name?: string;
   label?: string;
   fileName?: string;
+  data?: Record<string, unknown>;
   version?: number;
   createdAt: string;
   granted: boolean;

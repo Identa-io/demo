@@ -45,8 +45,18 @@ export async function POST(request: NextRequest) {
     const existing = await getSlotCandidates(body.demo, ds, ds.requestId, body.slotId);
     const first = existing.candidates?.[0];
     if (first) {
-      await attachSlot(body.demo, ds, ds.requestId, body.slotId, first.resourceId);
-      const out = await writeSlotDocument(body.demo, ds, ds.requestId, body.slotId, body.data);
+      if (!first.granted) {
+        await attachSlot(body.demo, ds, ds.requestId, body.slotId, first.resourceId);
+      }
+      // Write the submitted fields over the document's current data, never instead of it — the
+      // form shows a subset of the schema and must not clobber the rest. When nothing actually
+      // changed ("Confirm & share" untouched), the attach alone is the act: no version bump.
+      const current = first.data ?? {};
+      const next = { ...current, ...body.data };
+      if (JSON.stringify(next) === JSON.stringify(current)) {
+        return NextResponse.json({ ok: true, unchanged: true });
+      }
+      const out = await writeSlotDocument(body.demo, ds, ds.requestId, body.slotId, next);
       return NextResponse.json(out);
     }
     const out = await createSlotDocument(body.demo, ds, ds.requestId, body.slotId, body.data);

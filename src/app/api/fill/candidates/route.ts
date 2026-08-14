@@ -3,7 +3,7 @@ import { isDemoSlug } from '@/lib/demos';
 import { getSlotCandidates } from '@/lib/geena/partner';
 import { demoSession, getSession } from '@/lib/session';
 
-/** Candidates for one slot — metadata only, straight from the fill surface. */
+/** Candidates for one slot — with current document values, straight from the fill surface. */
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const demo = params.get('demo');
