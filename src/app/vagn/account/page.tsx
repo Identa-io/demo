@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { GeenaButton } from '@/components/geena-button';
 import { StateNotice } from '@/components/demo-chrome';
+import { PendingFills } from '@/components/pending-fills';
 import { addressLines, docData, fullName, slotByKind } from '@/lib/records';
 import { useDemoBase, useGeena } from '@/lib/use-geena';
 import { FLEET } from '../fleet';
@@ -264,6 +265,15 @@ export default function VagnAccount() {
                 </div>
               </div>
             </section>
+          )}
+
+          {view === 'driver' && (
+            <PendingFills
+              demo="vagn"
+              slots={data?.slots}
+              onChanged={() => void refresh()}
+              title="Complete your rental profile"
+            />
           )}
 
           {!name && (

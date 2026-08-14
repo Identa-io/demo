@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isDemoSlug } from '@/lib/demos';
 import { demoCredentials, geenaDashboardUrl } from '@/lib/env';
-import { getSlot, getStatus, type ServedRecord, type StatusGroup } from '@/lib/geena/partner';
+import {
+  getSlot,
+  getStatus,
+  type ServedRecord,
+  type StatusGroup,
+  type StatusSubject,
+} from '@/lib/geena/partner';
 import { verifyVagnSession } from '@/lib/vagn-auth';
 import { demoSession, getSession } from '@/lib/session';
 
@@ -19,6 +25,8 @@ export interface DataSlot {
   slotId: string;
   label?: string;
   group?: string;
+  /** The manifest subject this slot is about; absent = the recipient. */
+  subject?: string;
   kind: string;
   target?: string;
   status: 'granted' | 'pending';
@@ -35,6 +43,7 @@ export interface DataResponse {
   /** Deep link to the person's own grant screen on the Geena dashboard. */
   grantUrl?: string;
   groups?: StatusGroup[];
+  subjects?: StatusSubject[];
   slots?: DataSlot[];
   bookings?: string[];
   /** Set when the connection stopped serving (revoked/expired) — the "access ended" state. */
@@ -89,10 +98,12 @@ export async function GET(request: NextRequest) {
       requestId: ds.requestId,
       grantUrl: `${geenaDashboardUrl()}/personal/connections/${ds.requestId}`,
       groups: status.groups ?? [],
+      subjects: status.subjects ?? [],
       slots: status.items.map((item) => ({
         slotId: item.slotId,
         label: item.label,
         group: item.group,
+        subject: item.subject,
         kind: item.kind,
         target: item.target,
         status: item.status,

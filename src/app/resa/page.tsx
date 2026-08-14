@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { GeenaButton } from '@/components/geena-button';
 import { StateNotice } from '@/components/demo-chrome';
+import { FamilyManager } from '@/components/family-manager';
+import { PendingFills } from '@/components/pending-fills';
 import { ageFrom, docData, familyFromSlots, fullName } from '@/lib/records';
 import { useGeena } from '@/lib/use-geena';
 
@@ -33,6 +35,8 @@ export default function ResaQuote() {
   }, []);
 
   const slots = data?.slots;
+  const childSubject = data?.subjects?.find((s) => s.relation === 'child') ?? data?.subjects?.[0];
+  const childSlots = (slots ?? []).filter((slot) => slot.subject);
   const holderName = fullName(docData(slots, 'PersonFullName'));
   const holderBirth = String(docData(slots, 'PersonBirthDetails')?.dateOfBirth ?? '');
   const children = familyFromSlots(slots);
@@ -136,20 +140,20 @@ export default function ResaQuote() {
             {connected && !data?.accessEnded && !hasTravellers && (
               <div className="mt-3">
                 <StateNotice tone="info">
-                  Connected. Now pick the travellers:{' '}
-                  {data?.grantUrl && (
-                    <a
-                      href={data.grantUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-semibold underline underline-offset-2"
-                    >
-                      open the request in your Geena
-                    </a>
-                  )}{' '}
-                  — answer &quot;Each child you cover&quot; with as many of your children as this
-                  trip includes. Covering two of three? Share exactly those two.
+                  You&apos;re connected — add your details and travellers right below, without
+                  leaving this page. Covering two of three kids? Share exactly those two.
                 </StateNotice>
+              </div>
+            )}
+
+            {connected && !data?.accessEnded && (
+              <div className="mt-4">
+                <PendingFills
+                  demo="resa"
+                  slots={data?.slots}
+                  onChanged={() => void refresh()}
+                  title="Your details"
+                />
               </div>
             )}
 
@@ -193,11 +197,18 @@ export default function ResaQuote() {
               </ul>
             )}
 
-            {hasTravellers && children.length === 0 && (
-              <p className="mt-3 text-[12px] leading-relaxed text-[color:var(--muted)]">
-                Travelling with children? Bind them in your Geena and they appear here as priced
-                lines — the quote never asks how many you have.
-              </p>
+            {connected && !data?.accessEnded && childSubject && (
+              <div className="mt-4 border-t border-[color:var(--line)] pt-4">
+                <p className="field-label">{childSubject.label ?? 'Travelling children'}</p>
+                <div className="mt-2">
+                  <FamilyManager
+                    demo="resa"
+                    subject={childSubject}
+                    slots={childSlots}
+                    onChanged={() => void refresh()}
+                  />
+                </div>
+              </div>
             )}
           </div>
         </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { GeenaButton } from '@/components/geena-button';
 import { StateNotice } from '@/components/demo-chrome';
+import { PendingFills } from '@/components/pending-fills';
 import { addressLines, docData, fullName, maskedAccount, taxResidency } from '@/lib/records';
 import { useDemoBase, useGeena } from '@/lib/use-geena';
 
@@ -144,6 +145,15 @@ export default function VinstRegister() {
                 </div>
                 <GeenaButton demo="vinst" returnTo="/register" label="Fill with Geena" />
               </div>
+            )}
+
+            {connected && !data?.accessEnded && (
+              <PendingFills
+                demo="vinst"
+                slots={data?.slots}
+                onChanged={() => void refresh()}
+                title="Complete the application here"
+              />
             )}
 
             {/* Set like a statement: each section opens on a rule, the application closes over
