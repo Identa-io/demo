@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DataSlot } from '@/app/api/data/route';
 import type { CandidateItem, CandidatesResponse } from '@/lib/geena/partner';
 import type { DemoSlug } from '@/lib/demos';
@@ -42,6 +42,10 @@ export function SlotFiller({
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const filePicker = useRef<HTMLInputElement>(null);
+  // Whether the person edited the file label themselves — a hand-typed name survives re-picks,
+  // a proposed one follows the file.
+  const labelTouched = useRef(false);
 
   const fields = slot.target ? (SCHEMA_FIELDS[slot.target] ?? []) : [];
   const isFile = slot.kind === 'PERSONAL_FILES';
@@ -192,26 +196,67 @@ export function SlotFiller({
       <p className="text-[12px] font-semibold">{slot.label ?? slot.target}</p>
 
       {isFile ? (
-        <div className="mt-2 flex flex-wrap items-center gap-2">
+        <div className="mt-2 grid gap-2">
+          {/* The picker itself is invisible; a real button opens it — a bare "choose file"
+              control is too easy to miss. Picking proposes the vault name from the filename. */}
           <input
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            placeholder="Label, e.g. Driving licence"
-            aria-label="File label"
-            className="rounded-lg border border-[color:var(--line)] px-2.5 py-1.5 text-[12.5px]"
-          />
-          <input
+            ref={filePicker}
             type="file"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            className="text-[12px]"
+            className="hidden"
+            aria-hidden
+            tabIndex={-1}
+            onChange={(e) => {
+              const picked = e.target.files?.[0] ?? null;
+              e.target.value = ''; // so re-picking the same file still fires
+              if (!picked) return;
+              setFile(picked);
+              const proposed = picked.name.replace(/\.[^.]+$/, '');
+              setLabel((prev) => (labelTouched.current && prev ? prev : proposed));
+            }}
           />
-          <button
-            onClick={() => void upload()}
-            disabled={busy || !file}
-            className="btn-primary !px-3 !py-1.5 !text-[12px]"
-          >
-            {busy ? 'Uploading…' : 'Upload & share'}
-          </button>
+          {!file ? (
+            <button
+              onClick={() => filePicker.current?.click()}
+              className="btn-secondary !px-3 !py-2 !text-[12.5px]"
+            >
+              Choose a file…
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => filePicker.current?.click()}
+                className="flex w-full items-center justify-between gap-2 rounded-lg border border-[color:var(--line)] px-3 py-2 hover:border-[color:var(--accent)]"
+              >
+                <span className="vault-value truncate text-[12.5px]">{file.name}</span>
+                <span
+                  className="shrink-0 text-[10px] font-semibold"
+                  style={{ color: 'var(--accent)' }}
+                >
+                  change
+                </span>
+              </button>
+              <div>
+                <p className="field-label">Save as</p>
+                <input
+                  value={label}
+                  onChange={(e) => {
+                    labelTouched.current = true;
+                    setLabel(e.target.value);
+                  }}
+                  aria-label="Name in your vault"
+                  className="mt-1 w-full rounded-lg border border-[color:var(--line)] px-2.5 py-1.5 text-[12.5px]"
+                />
+              </div>
+              <button
+                onClick={() => void upload()}
+                disabled={busy}
+                className="btn-primary !px-3 !py-1.5 !text-[12px]"
+              >
+                {busy ? 'Uploading…' : 'Upload & share'}
+              </button>
+            </>
+          )}
         </div>
       ) : singleton ? (
         candidates === null ? (
