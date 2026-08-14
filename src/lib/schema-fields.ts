@@ -44,3 +44,25 @@ export const SCHEMA_FIELDS: Record<string, SchemaField[]> = {
     { key: 'taxID', label: 'Tax identification number' },
   ],
 };
+
+/**
+ * Singleton schemas hold one value per person (a person has one legal name, one birth date):
+ * picking between instances makes no sense, so the filler shows a value form instead — under
+ * the hood the existing (possibly empty starter) document is attached and written, or created
+ * when none exists.
+ */
+export const SINGLETON_TARGETS = new Set([
+  'PersonFullName',
+  'PersonBirthDetails',
+  'PersonTaxStatus',
+  'PersonFinancialProfile',
+  'PersonJob',
+]);
+
+/** Label suggestions for multi-instance targets — the org's hint for naming a new value. */
+export const LABEL_HINTS: Record<string, string> = {
+  PersonEmail: 'e.g. Personal, Work',
+  PersonPhone: 'e.g. Mobile, Work',
+  PersonAddress: 'e.g. Home, Work',
+  PersonBankAccount: 'e.g. Main account',
+};

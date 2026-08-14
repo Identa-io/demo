@@ -34,8 +34,12 @@ export default function VinstRegister() {
 
   const connected = data?.connected ?? false;
   const anythingGranted = !!(name || email || phone || address.length || payout || tax);
-  const waitingOnGrants = connected && !data?.accessEnded && !anythingGranted;
   const complete = !!(name && email && (payout || tax));
+  const allSlots = data?.slots ?? [];
+  const pendingCount = allSlots.filter((slot) => slot.status === 'pending').length;
+  const filling = connected && !data?.accessEnded && pendingCount > 0;
+  // The statement is the SUMMARY: it appears once there is nothing left to fill.
+  const showSummary = connected && !data?.accessEnded && pendingCount === 0 && anythingGranted;
 
   const sections: {
     title: string;
@@ -118,23 +122,6 @@ export default function VinstRegister() {
               </StateNotice>
             )}
 
-            {waitingOnGrants && (
-              <StateNotice tone="info">
-                Connected. Now choose what to share:{' '}
-                {data?.grantUrl && (
-                  <a
-                    href={data.grantUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-semibold underline underline-offset-2"
-                  >
-                    open the request in your Geena
-                  </a>
-                )}{' '}
-                — the application fills itself the moment you grant.
-              </StateNotice>
-            )}
-
             {(!connected || data?.accessEnded) && (
               <div className="card flex flex-col items-start justify-between gap-4 p-5 sm:flex-row sm:items-center">
                 <div>
@@ -147,68 +134,78 @@ export default function VinstRegister() {
               </div>
             )}
 
-            {connected && !data?.accessEnded && (
-              <PendingFills
-                demo="vinst"
-                slots={data?.slots}
-                onChanged={() => void refresh()}
-                title="Complete the application here"
-              />
+            {filling && (
+              <>
+                <div className="flex items-baseline justify-between">
+                  <p className="eyebrow">Complete the application</p>
+                  <span className="vault-value text-[11px] text-[color:var(--muted)]">
+                    {allSlots.length - pendingCount} / {allSlots.length} shared
+                  </span>
+                </div>
+                <PendingFills demo="vinst" slots={data?.slots} onChanged={() => void refresh()} />
+              </>
             )}
 
-            {/* Set like a statement: each section opens on a rule, the application closes over
-                a double rule — the way audited documents mark their totals. */}
-            <div className="space-y-7 pt-2">
-              {sections.map((section, sectionIndex) => (
-                <section key={section.title} className="ledger-open pt-3">
-                  <div className="flex items-baseline justify-between">
-                    <h2 className="text-[13px] font-semibold tracking-tight">{section.title}</h2>
-                    <span className="vault-value text-[10px] text-[color:var(--muted)]">
-                      {String(sectionIndex + 1).padStart(2, '0')} /{' '}
-                      {String(sections.length).padStart(2, '0')}
+            {showSummary && (
+              <>
+                {/* Set like a statement: the SUMMARY of what the application holds — it appears once
+                everything is shared; each section opens on a rule, the application closes over
+                a double rule, the way audited documents mark their totals. */}
+                <div className="space-y-7 pt-2">
+                  {sections.map((section, sectionIndex) => (
+                    <section key={section.title} className="ledger-open pt-3">
+                      <div className="flex items-baseline justify-between">
+                        <h2 className="text-[13px] font-semibold tracking-tight">
+                          {section.title}
+                        </h2>
+                        <span className="vault-value text-[10px] text-[color:var(--muted)]">
+                          {String(sectionIndex + 1).padStart(2, '0')} /{' '}
+                          {String(sections.length).padStart(2, '0')}
+                        </span>
+                      </div>
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        {section.rows.map((row) => {
+                          const delay = row.value ? `${fieldIndex++ * 120}ms` : undefined;
+                          return (
+                            <div
+                              key={row.label}
+                              className={section.rows.length === 1 ? 'sm:col-span-2' : ''}
+                            >
+                              <p className="field-label">{row.label}</p>
+                              <div
+                                key={row.value || 'empty'}
+                                className={`mt-1 min-h-10 rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-2.5 text-[13.5px] ${
+                                  row.value ? 'fill-in vault-value' : 'text-[color:var(--muted)]'
+                                }`}
+                                style={delay ? { animationDelay: delay } : undefined}
+                              >
+                                {row.value || 'Waiting for your vault'}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  ))}
+
+                  <div className="ledger-close flex items-baseline justify-between pb-2.5 pt-1">
+                    <span className="text-[13px] font-semibold">Application</span>
+                    <span className="vault-value text-[12px]">
+                      {completedSections} / {sections.length} sections complete
                     </span>
                   </div>
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    {section.rows.map((row) => {
-                      const delay = row.value ? `${fieldIndex++ * 120}ms` : undefined;
-                      return (
-                        <div
-                          key={row.label}
-                          className={section.rows.length === 1 ? 'sm:col-span-2' : ''}
-                        >
-                          <p className="field-label">{row.label}</p>
-                          <div
-                            key={row.value || 'empty'}
-                            className={`mt-1 min-h-10 rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-2.5 text-[13.5px] ${
-                              row.value ? 'fill-in vault-value' : 'text-[color:var(--muted)]'
-                            }`}
-                            style={delay ? { animationDelay: delay } : undefined}
-                          >
-                            {row.value || 'Waiting for your vault'}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </section>
-              ))}
+                </div>
 
-              <div className="ledger-close flex items-baseline justify-between pb-2.5 pt-1">
-                <span className="text-[13px] font-semibold">Application</span>
-                <span className="vault-value text-[12px]">
-                  {completedSections} / {sections.length} sections complete
-                </span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setSubmitted(true)}
-              disabled={!complete}
-              className="btn-primary w-full !py-3.5 !text-[14px]"
-            >
-              Submit application
-              {complete ? '' : ' — waiting for identity and payout details'}
-            </button>
+                <button
+                  onClick={() => setSubmitted(true)}
+                  disabled={!complete}
+                  className="btn-primary w-full !py-3.5 !text-[14px]"
+                >
+                  Submit application
+                  {complete ? '' : ' — waiting for identity and payout details'}
+                </button>
+              </>
+            )}
 
             {connected && !data?.accessEnded && (
               <p className="text-center text-[11px] text-[color:var(--muted)]">

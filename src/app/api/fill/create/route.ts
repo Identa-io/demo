@@ -10,6 +10,7 @@ export async function POST(request: NextRequest) {
     slotId?: string;
     data?: Record<string, unknown>;
     person?: string;
+    name?: string;
   };
   if (!isDemoSlug(body.demo) || !body.slotId || !body.data) {
     return NextResponse.json({ error: 'bad request' }, { status: 400 });

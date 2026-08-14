@@ -5,9 +5,9 @@ import type { DemoSlug } from '@/lib/demos';
 import { SlotFiller } from './slot-filler';
 
 /**
- * Every recipient slot still pending, fillable in place — the "user only ever leaves the app to
- * log in and consent" model made visible. Family-member slots are handled by the FamilyManager,
- * never here.
+ * Every recipient slot still pending, open and fillable in place — the "user only ever leaves
+ * the app to log in and consent" model made visible. Family-member slots are handled by the
+ * FamilyManager, never here.
  */
 export function PendingFills({
   demo,
@@ -24,16 +24,11 @@ export function PendingFills({
   if (pending.length === 0) return null;
 
   return (
-    <div className="card p-4" style={{ fontFamily: 'var(--font-inter)' }}>
-      <p className="eyebrow">{title ?? 'Complete it here'}</p>
-      <div className="mt-2.5 space-y-2.5">
+    <div style={{ fontFamily: 'var(--font-inter)' }}>
+      {title && <p className="eyebrow">{title}</p>}
+      <div className="mt-2.5 space-y-3">
         {pending.map((slot) => (
-          <div key={slot.slotId} className="flex flex-wrap items-center gap-2.5">
-            <span className="w-40 shrink-0 text-[12px] text-[color:var(--muted)]">
-              {slot.label ?? slot.target}
-            </span>
-            <SlotFiller demo={demo} slot={slot} onFilled={onChanged} />
-          </div>
+          <SlotFiller key={slot.slotId} demo={demo} slot={slot} onFilled={onChanged} />
         ))}
       </div>
       <p className="mt-2.5 text-[10px] leading-relaxed text-[color:var(--muted)]">

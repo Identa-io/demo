@@ -306,3 +306,21 @@ export function createSubjectPerson(
     'application/json',
   );
 }
+
+/** Delegated write (`edit` verb): a new version of the slot's granted document. */
+export function writeSlotDocument(
+  demo: DemoSlug,
+  ds: DemoSession,
+  requestId: string,
+  slotId: string,
+  data: Record<string, unknown>,
+) {
+  return partnerSend(
+    demo,
+    ds,
+    'PUT',
+    `/requests/${requestId}/slots/${slotId}`,
+    JSON.stringify({ data }),
+    'application/json',
+  );
+}
