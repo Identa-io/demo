@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DEMOS, isDemoSlug } from '@/lib/demos';
+import { DEMOS, externalOrigin, isDemoSlug } from '@/lib/demos';
 import { buildAuthorizeUrl, makePkce } from '@/lib/geena/oauth';
 import { demoSession, getSession } from '@/lib/session';
 
@@ -18,7 +18,8 @@ export async function GET(request: NextRequest) {
   const ds = demoSession(session, demo);
 
   const returnTo = request.nextUrl.searchParams.get('return') || DEMOS[demo].returnPath;
-  const redirectUri = `${request.nextUrl.origin}/api/auth/callback`;
+  const origin = externalOrigin(request.headers, request.nextUrl.origin);
+  const redirectUri = `${origin}/api/auth/callback`;
   const { verifier, challenge, state } = makePkce();
   ds.pending = { state, verifier, redirectUri, returnTo };
 

@@ -72,3 +72,19 @@ export function demoBasePath(host: string | null, demo: DemoSlug): string {
   const sub = (host ?? '').split(':')[0].split('.')[0];
   return sub === demo ? '' : `/${demo}`;
 }
+
+/**
+ * The browser-facing origin, derived from what the proxy forwarded — never from
+ * `request.nextUrl.origin`, which in the standalone container is the BIND address
+ * (https://0.0.0.0:3000) and would leak into redirect URIs. Forwarded headers first,
+ * plain Host next (Caddy passes it through), the caller's fallback last.
+ */
+export function externalOrigin(headers: Headers, fallback: string): string {
+  const host = headers.get('x-forwarded-host')?.split(',')[0]?.trim() || headers.get('host');
+  if (!host) return fallback;
+  const bare = host.split(':')[0];
+  const local = bare === 'localhost' || bare.endsWith('.localhost') || bare === '127.0.0.1';
+  const proto =
+    headers.get('x-forwarded-proto')?.split(',')[0]?.trim() || (local ? 'http' : 'https');
+  return `${proto}://${host}`;
+}
