@@ -104,7 +104,10 @@ export async function GET(request: NextRequest) {
         label: item.label,
         group: item.group,
         subject: item.subject,
-        kind: item.kind,
+        // The partner plane serves domain kinds in lowercase (`personal_files`); the demo's
+        // components compare against the manifest-template casing (`PERSONAL_FILES`), so
+        // normalize once here at the boundary.
+        kind: item.kind.toUpperCase(),
         target: item.target,
         status: item.status,
         records: (recordsBySlot.get(item.slotId) ?? []).map((record) =>
