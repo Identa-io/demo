@@ -4,11 +4,11 @@ Three small fictional companies, each built on **Connect with Geena** — and on
 integration. The demos sell the UX; this repo sells the code: everything a partner needs is in
 `src/lib/geena/` (~2 files) plus one redirect and one callback route.
 
-| Demo | Scenario | Proves |
-|---|---|---|
-| **Vinst** | opening an account with a fund platform | KYC-grade autofill: identity, payout account and tax residency arrive from the vault, current on every visit |
-| **Resa** | travel insurance for you and your children | family data without "child 1 / child 2" forms — per-person pricing over exactly the children you chose to cover |
-| **Vagn** | renting a car with a real account | passwordless login (Geena is the whole auth stack), a licence shared without attachments, and a revocation that actually ends access |
+| Demo      | Scenario                                   | Proves                                                                                                                               |
+| --------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Vinst** | running an account at a fund platform      | KYC-grade data that manages itself: fill from the vault, update in place, the org always reads the current version                   |
+| **Resa**  | travel insurance for you and your children | family data without "child 1 / child 2" forms — per-person pricing over exactly the children you chose to cover                      |
+| **Vagn**  | renting a car with a real account          | passwordless login (Geena is the whole auth stack), a licence shared without attachments, and a revocation that actually ends access |
 
 ## How a demo connects
 
@@ -46,13 +46,21 @@ Integration rules this repo models on purpose:
 Requirements: Node 20+, a Geena environment (the public site runs against test), and one
 organization + OAuth app + published manifest per demo.
 
-1. **Create the three orgs and apps** on the Geena dashboard (*Organization → Apps → New app*).
+1. **Create the three orgs and apps** on the Geena dashboard (_Organization → Apps → New app_).
    The `client_id` is the slug you choose; the secret is shown **exactly once** — put it in
-   `.env` in the same breath. Each app's `allowedOrigins` must contain the origin the demo runs
-   on (`http://vinst.localhost:3005` for dev, `https://vinst.demo.test.geena.eu` deployed).
-2. **Publish the manifests.** The authoring inputs are checked in under `manifests/` — create
-   them in the studio (or via `manifestCreate`) and publish. They carry `initiation: BOTH`, so
-   the "Continue with Geena" button may open them. Copy each published manifest id into `.env`.
+   `.env` in the same breath. Each app's `allowedOrigins` must contain the **exact origin** the
+   demo runs on — scheme + host + port, no path, matched as a string. For local dev register
+   both `http://localhost:3005` (path-style browsing) and `http://vinst.localhost:3005`
+   (subdomain-style); deployed, add `https://vinst.demo.test.geena.eu`. Getting this wrong is
+   the classic first failure: `/oauth/authorize` answers "invalid redirect_uri for this
+   client". Origins are editable afterwards by a platform admin (_Admin → Partners_).
+2. **Publish the manifests.** The authoring inputs are checked in under `manifests/` — import
+   them in the studio (Manifests → Import JSON) or via `manifestCreate`, then publish. They
+   carry `initiation: BOTH` (the "Continue with Geena" button may open them) and the full verb
+   set (`fill`/`edit`/`keep`; the licence slot skips `edit` — file stores have no delegated
+   write). The default seeded business plan is a plain ask, so a platform admin must put the
+   three demo orgs on a plan whose capability covers these targets and verbs — otherwise the
+   ceremony refuses with a capability error. Copy each published manifest id into `.env`.
 3. Configure and run:
 
 ```bash
@@ -87,10 +95,3 @@ demos sell the UX; backstage sells the integration.
 All brands are fictional; all figures (fund returns, premiums, rental prices) are illustrative.
 No payments happen, and nothing is stored beyond an in-memory demo session (a real partner would
 persist tokens encrypted — the comments say so where it matters).
-
-## Not in v1 (yet)
-
-Per the plan of record (`geena-demo-apps.md` in the workspace): the seeded booth account script
-(`scripts/seed-demo-account.ts`) and the idempotent `scripts/publish-manifests.ts` are still to
-come — today the orgs, apps and manifests are set up by hand per the steps above. No write
-verbs either: every manifest is a plain ask, which is the v1 story.

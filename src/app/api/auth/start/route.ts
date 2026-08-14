@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     // Missing credentials — the repo runs, but this demo is not set up yet (see .env.example).
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'demo not configured' },
-      { status: 503 }
+      { status: 503 },
     );
   }
 }

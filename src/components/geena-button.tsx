@@ -4,7 +4,7 @@ import { connectHref } from '@/lib/use-geena';
 /**
  * The Connect-with-Geena button — deliberately IDENTICAL in all three demos. Three different
  * worlds, one recognizable button: the constancy is the product shot. Brand tokens do not apply
- * here; only the Geena colorway does.
+ * here; only the Geena colorway and the Geena mark do.
  */
 export function GeenaButton({
   demo,
@@ -25,13 +25,13 @@ export function GeenaButton({
       }`}
       style={{ background: 'var(--geena)', fontFamily: 'var(--font-inter)' }}
     >
-      <span
+      {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no optimization needed */}
+      <img
+        src="/geena/icon-white.svg"
+        alt=""
         aria-hidden
-        className="flex h-5 w-5 items-center justify-center rounded-full bg-white/95 text-[11px] font-black"
-        style={{ color: 'var(--geena)' }}
-      >
-        G
-      </span>
+        className={size === 'lg' ? 'h-[17px] w-auto' : 'h-[15px] w-auto'}
+      />
       {label ?? 'Continue with Geena'}
     </a>
   );

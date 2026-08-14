@@ -9,11 +9,43 @@
     { "id": "child", "relation": "CHILD", "label": "Each child you cover", "repeat": true }
   ],
   "slots": [
-    { "label": "Full name", "group": "policyholder", "kind": "SCHEMA", "target": "PersonFullName", "verbs": [] },
-    { "label": "Email", "group": "policyholder", "kind": "SCHEMA", "target": "PersonEmail", "verbs": [] },
-    { "label": "Date of birth", "group": "policyholder", "kind": "SCHEMA", "target": "PersonBirthDetails", "verbs": [] },
-    { "label": "Child's name", "group": "travellers", "subject": "child", "kind": "SCHEMA", "target": "PersonFullName", "verbs": [] },
-    { "label": "Child's date of birth", "group": "travellers", "subject": "child", "kind": "SCHEMA", "target": "PersonBirthDetails", "verbs": [] }
+    {
+      "label": "Full name",
+      "group": "policyholder",
+      "kind": "SCHEMA",
+      "target": "PersonFullName",
+      "verbs": ["FILL", "EDIT", "KEEP"]
+    },
+    {
+      "label": "Email",
+      "group": "policyholder",
+      "kind": "SCHEMA",
+      "target": "PersonEmail",
+      "verbs": ["FILL", "EDIT", "KEEP"]
+    },
+    {
+      "label": "Date of birth",
+      "group": "policyholder",
+      "kind": "SCHEMA",
+      "target": "PersonBirthDetails",
+      "verbs": ["FILL", "EDIT", "KEEP"]
+    },
+    {
+      "label": "Child's name",
+      "group": "travellers",
+      "subject": "child",
+      "kind": "SCHEMA",
+      "target": "PersonFullName",
+      "verbs": ["FILL", "EDIT", "KEEP"]
+    },
+    {
+      "label": "Child's date of birth",
+      "group": "travellers",
+      "subject": "child",
+      "kind": "SCHEMA",
+      "target": "PersonBirthDetails",
+      "verbs": ["FILL", "EDIT", "KEEP"]
+    }
   ],
   "terms": {
     "legalBasis": "CONSENT",

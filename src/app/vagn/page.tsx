@@ -41,8 +41,8 @@ export default function VagnFleet() {
             The keys, without the counter queue.
           </h1>
           <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-[color:var(--muted)]">
-            Your driver profile and licence live in your vault. Sign in once — no password, no
-            forms at the desk — and the car is ready under your name.
+            Your driver profile and licence live in your vault. Sign in once — no password, no forms
+            at the desk — and the car is ready under your name.
           </p>
         </div>
       </section>
@@ -80,7 +80,15 @@ export default function VagnFleet() {
                     className="absolute bottom-3 left-4 w-24 opacity-40"
                     aria-hidden
                   >
-                    <line x1="0" y1="12" x2="120" y2="12" stroke="#fff" strokeWidth="2" strokeDasharray="14 10" />
+                    <line
+                      x1="0"
+                      y1="12"
+                      x2="120"
+                      y2="12"
+                      stroke="#fff"
+                      strokeWidth="2"
+                      strokeDasharray="14 10"
+                    />
                   </svg>
                 </div>
                 <div className="p-4">

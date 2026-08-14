@@ -7,11 +7,40 @@
     { "id": "licence", "label": "Licence", "order": 3 }
   ],
   "slots": [
-    { "label": "Full name", "group": "driver", "kind": "SCHEMA", "target": "PersonFullName", "verbs": [] },
-    { "label": "Email", "group": "driver", "kind": "SCHEMA", "target": "PersonEmail", "verbs": [] },
-    { "label": "Phone", "group": "driver", "kind": "SCHEMA", "target": "PersonPhone", "verbs": [] },
-    { "label": "Home address", "group": "contract", "kind": "SCHEMA", "target": "PersonAddress", "verbs": [] },
-    { "label": "Driving licence (scan or photo)", "group": "licence", "kind": "PERSONAL_FILES", "verbs": [] }
+    {
+      "label": "Full name",
+      "group": "driver",
+      "kind": "SCHEMA",
+      "target": "PersonFullName",
+      "verbs": ["FILL", "EDIT", "KEEP"]
+    },
+    {
+      "label": "Email",
+      "group": "driver",
+      "kind": "SCHEMA",
+      "target": "PersonEmail",
+      "verbs": ["FILL", "EDIT", "KEEP"]
+    },
+    {
+      "label": "Phone",
+      "group": "driver",
+      "kind": "SCHEMA",
+      "target": "PersonPhone",
+      "verbs": ["FILL", "EDIT", "KEEP"]
+    },
+    {
+      "label": "Home address",
+      "group": "contract",
+      "kind": "SCHEMA",
+      "target": "PersonAddress",
+      "verbs": ["FILL", "EDIT", "KEEP"]
+    },
+    {
+      "label": "Driving licence (scan or photo)",
+      "group": "licence",
+      "kind": "PERSONAL_FILES",
+      "verbs": ["FILL", "KEEP"]
+    }
   ],
   "terms": {
     "legalBasis": "CONSENT",

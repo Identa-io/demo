@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { GeenaButton } from '@/components/geena-button';
 import { StateNotice } from '@/components/demo-chrome';
+import { PendingFills } from '@/components/pending-fills';
 import { addressLines, docData, fullName, slotByKind } from '@/lib/records';
 import { useDemoBase, useGeena } from '@/lib/use-geena';
 import { FLEET } from '../fleet';
@@ -15,7 +16,7 @@ import { FLEET } from '../fleet';
  * the counter, no attachments in anyone's inbox.
  *
  * Act 2, revoke: done in the person's own Geena ("trip's over — take it all back"). The poll
- * flips this page to ACCESS ENDED: nothing here carried `keep`, so nothing survived.
+ * flips this page to ACCESS ENDED: Vagn never adopted a copy, so nothing survived.
  *
  * Logout is deliberately the other button — it ends Vagn's session and touches nothing at
  * Geena. Session control belongs to the app; data control belongs to the person.
@@ -79,8 +80,8 @@ export default function VagnAccount() {
       {data?.accessEnded && (
         <StateNotice tone="ended">
           <strong>Access ended.</strong> You revoked Vagn in your Geena — the desk view went dark,
-          because nothing here carried &quot;keep&quot;. Compare that to the licence photocopy a
-          rental counter took in 2019. Signing in again simply asks for consent afresh.
+          and since Vagn never kept a copy, nothing survived. Compare that to the licence photocopy
+          a rental counter took in 2019. Signing in again simply asks for consent afresh.
           <div className="mt-3">
             <GeenaButton demo="vagn" returnTo="/account" label="Reconnect with Geena" />
           </div>
@@ -115,7 +116,9 @@ export default function VagnAccount() {
                   ].map(([label, value]) => (
                     <div key={label} className="flex items-baseline justify-between gap-3">
                       <dt className="field-label">{label}</dt>
-                      <dd className="text-right font-medium">
+                      <dd
+                        className={`text-right font-medium ${value ? 'vault-value text-[13px]' : ''}`}
+                      >
                         {value || (
                           <a
                             href={data?.grantUrl}
@@ -153,20 +156,32 @@ export default function VagnAccount() {
                         key={car.id}
                         className="flex items-center justify-between gap-3 rounded-xl border border-[color:var(--line)] px-3.5 py-2.5"
                       >
-                        <div>
-                          <p className="text-[14px] font-bold">
-                            {car.name}{' '}
-                            <span className="font-normal text-[color:var(--muted)]">
-                              · {car.example}
-                            </span>
-                          </p>
-                          <p className="tabular text-[11px] text-[color:var(--muted)]">
-                            €{car.perDay}/day · pick-up Malmö C
-                          </p>
+                        <div className="flex min-w-0 items-center gap-3">
+                          <span
+                            className="plate shrink-0"
+                            aria-label={`Booking reference ${car.plate}`}
+                          >
+                            <span className="plate-band">V</span>
+                            <span className="plate-no">{car.plate}</span>
+                          </span>
+                          <div className="min-w-0">
+                            <p className="truncate text-[14px] font-bold">
+                              {car.name}{' '}
+                              <span className="font-normal text-[color:var(--muted)]">
+                                · {car.example}
+                              </span>
+                            </p>
+                            <p className="tabular text-[11px] text-[color:var(--muted)]">
+                              €{car.perDay}/day · pick-up Malmö C
+                            </p>
+                          </div>
                         </div>
                         <span
-                          className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider"
-                          style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}
+                          className="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider"
+                          style={{
+                            background: 'var(--accent-soft)',
+                            color: 'var(--accent)',
+                          }}
                         >
                           Confirmed
                         </span>
@@ -210,7 +225,9 @@ export default function VagnAccount() {
                       className="flex items-baseline justify-between gap-3 border-b border-[color:var(--line)] pb-1.5"
                     >
                       <dt className="text-[color:var(--muted)]">{label}</dt>
-                      <dd className="text-right font-medium">{value || '—'}</dd>
+                      <dd className={`text-right font-medium ${value ? 'vault-value' : ''}`}>
+                        {value || '—'}
+                      </dd>
                     </div>
                   ))}
                 </dl>
@@ -230,7 +247,9 @@ export default function VagnAccount() {
                             rel="noreferrer"
                             className="flex items-center justify-between gap-2 rounded-lg border border-[color:var(--line)] px-3 py-2 text-[13px] font-medium hover:border-[color:var(--accent)]"
                           >
-                            <span className="truncate">{file.label || file.fileName || 'Document'}</span>
+                            <span className="truncate">
+                              {file.label || file.fileName || 'Document'}
+                            </span>
                             <span className="shrink-0 text-[10px] text-[color:var(--muted)]">
                               streams inline — never attached
                             </span>
@@ -240,12 +259,21 @@ export default function VagnAccount() {
                     </ul>
                   )}
                   <p className="mt-3 text-[11px] leading-relaxed text-[color:var(--muted)]">
-                    Every read here wrote a receipt the driver can see in their Geena. Nothing
-                    carries &quot;keep&quot; — revocation ends this view, entirely.
+                    Every read here wrote a receipt the driver can see in their Geena. Vagn keeps no
+                    copies — revocation ends this view, entirely.
                   </p>
                 </div>
               </div>
             </section>
+          )}
+
+          {view === 'driver' && (
+            <PendingFills
+              demo="vagn"
+              slots={data?.slots}
+              onChanged={() => void refresh()}
+              title="Complete your rental profile"
+            />
           )}
 
           {!name && (

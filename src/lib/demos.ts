@@ -13,6 +13,8 @@ export interface DemoDefinition {
   scenario: string;
   /** One line for the landing card: which Geena capability it proves. */
   proves: string;
+  /** The ask, generalized to a phrase — the full manifest lives in the demo's backstage. */
+  asks: string;
   /** Short capability tags for the landing card. */
   tags: string[];
   /** Where the connect ceremony returns the visitor inside the demo. */
@@ -23,16 +25,21 @@ export const DEMOS: Record<DemoSlug, DemoDefinition> = {
   vinst: {
     slug: 'vinst',
     name: 'Vinst',
-    scenario: 'Open an account with a fund platform — the onboarding form writes itself.',
-    proves: 'KYC-grade autofill: identity, payout account and tax residency arrive from the vault, current on every visit.',
-    tags: ['account opening', 'autofill', 'KYC data'],
+    scenario:
+      'Run your account at a fund platform — it opens from your vault and updates in place.',
+    proves:
+      'KYC-grade data that manages itself: fill from the vault, update any value in place, and the organization reads the current version.',
+    asks: 'identity, payout account and tax residency',
+    tags: ['account management', 'autofill', 'KYC data'],
     returnPath: '/register',
   },
   resa: {
     slug: 'resa',
     name: 'Resa',
     scenario: 'Buy travel insurance for yourself and your children in one sitting.',
-    proves: 'Family data without "child 1 / child 2" forms — you decide which children to cover, the insurer never learns more.',
+    proves:
+      'Family data without "child 1 / child 2" forms — you decide which children to cover, the insurer never learns more.',
+    asks: 'you, plus exactly the children you choose',
     tags: ['family subjects', 'per-person pricing'],
     returnPath: '/',
   },
@@ -40,7 +47,9 @@ export const DEMOS: Record<DemoSlug, DemoDefinition> = {
     slug: 'vagn',
     name: 'Vagn',
     scenario: 'Rent a car with a real account — and no password, ever.',
-    proves: 'Geena as the whole login stack, a licence shared without attachments, and a revocation that actually ends access.',
+    proves:
+      'Geena as the whole login stack, a licence shared without attachments, and a revocation that actually ends access.',
+    asks: 'your driver profile and licence',
     tags: ['passwordless login', 'documents', 'revoke'],
     returnPath: '/account',
   },

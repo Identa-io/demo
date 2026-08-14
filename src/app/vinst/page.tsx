@@ -19,9 +19,9 @@ export default function VinstHome() {
             Long-term investing, without the long form.
           </h1>
           <p className="mt-4 max-w-md text-[15px] leading-relaxed text-[color:var(--muted)]">
-            Three funds, one fee promise, and an account opening that takes minutes — your
-            identity, payout account and tax residency arrive from your Geena vault, not from a
-            questionnaire.
+            Three funds, one fee promise, and an account that opens in minutes and stays current —
+            your identity, payout account and tax residency live in your Geena vault, not in our
+            filing cabinet.
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-4">
             <a href={`${base}/register`} className="btn-primary !px-6 !py-3 !text-[14px]">
@@ -31,7 +31,8 @@ export default function VinstHome() {
               See the funds
             </a>
           </div>
-          <dl className="mt-10 grid max-w-md grid-cols-3 gap-6 border-t border-[color:var(--line)] pt-6">
+          {/* Set like a statement extract: opens on a rule, closes over a double rule. */}
+          <dl className="ledger-open ledger-close mt-10 grid max-w-md grid-cols-3 gap-6 pb-4 pt-4">
             {[
               ['0.12–0.24%', 'annual fee'],
               ['3', 'index funds'],
@@ -56,7 +57,12 @@ export default function VinstHome() {
               +62.4%
             </p>
           </div>
-          <svg viewBox="0 0 320 140" className="mt-4 w-full" role="img" aria-label="Illustrative five-year performance chart">
+          <svg
+            viewBox="0 0 320 140"
+            className="mt-4 w-full"
+            role="img"
+            aria-label="Illustrative five-year performance chart"
+          >
             <defs>
               <linearGradient id="vinst-fill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.18" />
@@ -79,8 +85,8 @@ export default function VinstHome() {
             />
           </svg>
           <p className="mt-3 text-[10px] leading-relaxed text-[color:var(--muted)]">
-            Illustrative figures. Capital at risk — the value of investments can go down as well
-            as up. Vinst is a fictional platform; this is a Geena demo.
+            Illustrative figures. Capital at risk — the value of investments can go down as well as
+            up. Vinst is a fictional platform; this is a Geena demo.
           </p>
         </div>
       </section>
@@ -104,7 +110,10 @@ export default function VinstHome() {
                 </div>
                 <span
                   className="tabular rounded-md px-2 py-1 text-[11px] font-bold"
-                  style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}
+                  style={{
+                    background: 'var(--accent-soft)',
+                    color: 'var(--accent)',
+                  }}
                 >
                   {fund.fee.toFixed(2)}%
                 </span>

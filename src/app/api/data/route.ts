@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isDemoSlug } from '@/lib/demos';
 import { demoCredentials, geenaDashboardUrl } from '@/lib/env';
-import { getSlot, getStatus, type ServedRecord, type StatusGroup } from '@/lib/geena/partner';
+import {
+  getSlot,
+  getStatus,
+  type ServedRecord,
+  type StatusGroup,
+  type StatusSubject,
+} from '@/lib/geena/partner';
 import { verifyVagnSession } from '@/lib/vagn-auth';
 import { demoSession, getSession } from '@/lib/session';
 
@@ -19,6 +25,8 @@ export interface DataSlot {
   slotId: string;
   label?: string;
   group?: string;
+  /** The manifest subject this slot is about; absent = the recipient. */
+  subject?: string;
   kind: string;
   target?: string;
   status: 'granted' | 'pending';
@@ -35,6 +43,7 @@ export interface DataResponse {
   /** Deep link to the person's own grant screen on the Geena dashboard. */
   grantUrl?: string;
   groups?: StatusGroup[];
+  subjects?: StatusSubject[];
   slots?: DataSlot[];
   bookings?: string[];
   /** Set when the connection stopped serving (revoked/expired) — the "access ended" state. */
@@ -74,9 +83,7 @@ export async function GET(request: NextRequest) {
     // org never learns why (pending is indistinguishable from refused, by design).
     const granted = status.items.filter((item) => item.status === 'granted');
     const served = await Promise.all(
-      granted.map((item) =>
-        getSlot(demo, ds, ds.requestId!, item.slotId).catch(() => undefined)
-      )
+      granted.map((item) => getSlot(demo, ds, ds.requestId!, item.slotId).catch(() => undefined)),
     );
     const recordsBySlot = new Map<string, ServedRecord[]>();
     served.forEach((slot) => {
@@ -91,11 +98,16 @@ export async function GET(request: NextRequest) {
       requestId: ds.requestId,
       grantUrl: `${geenaDashboardUrl()}/personal/connections/${ds.requestId}`,
       groups: status.groups ?? [],
+      subjects: status.subjects ?? [],
       slots: status.items.map((item) => ({
         slotId: item.slotId,
         label: item.label,
         group: item.group,
-        kind: item.kind,
+        subject: item.subject,
+        // The partner plane serves domain kinds in lowercase (`personal_files`); the demo's
+        // components compare against the manifest-template casing (`PERSONAL_FILES`), so
+        // normalize once here at the boundary.
+        kind: item.kind.toUpperCase(),
         target: item.target,
         status: item.status,
         records: (recordsBySlot.get(item.slotId) ?? []).map((record) =>
@@ -105,7 +117,7 @@ export async function GET(request: NextRequest) {
                 // The browser never holds a Geena token — file bytes flow through our proxy.
                 downloadUrl: `/api/file?demo=${demo}&slot=${item.slotId}&file=${record.resourceId}`,
               }
-            : record
+            : record,
         ),
       })),
       bookings: demo === 'vagn' ? ds.bookings : undefined,

@@ -1,0 +1,44 @@
+name: Release
+run-name: "release ${{ inputs.version }}"
+
+# Manual image build: tags and pushes registry.identa.io/demo:<version>.
+# Nothing is committed and nothing is deployed from here — to ship it, bump
+# DEMO_VERSION in iac's environments/testing/versions.env and deploy from iac.
+#
+# Repository secrets used:
+#   REGISTRY_USERNAME / REGISTRY_PASSWORD — push credentials for registry.identa.io
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Image tag (vX.Y.Z)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build and push registry.identa.io/demo:${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to registry
+        run: |
+          echo "${{ secrets.REGISTRY_PASSWORD }}" | \
+            docker login registry.identa.io -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
+
+      - name: Build image
+        run: |
+          docker build \
+            --label org.opencontainers.image.revision=${{ github.sha }} \
+            -t registry.identa.io/demo:${{ inputs.version }} .
+
+      - name: Push image
+        run: docker push registry.identa.io/demo:${{ inputs.version }}

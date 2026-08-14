@@ -2,9 +2,10 @@ import { headers } from 'next/headers';
 import { DEMO_SLUGS, DEMOS, type DemoSlug } from '@/lib/demos';
 
 /**
- * The gallery: one page, three doors. On demo.test.geena.eu each card leads to the demo's own
- * subdomain — every partner is its own origin, and so is every demo. On a bare host (local dev)
- * the same routes work path-style.
+ * The gallery: one page, three doors. Each card states its ask in one generalized line — the
+ * full manifest lives one click away, in the demo's backstage drawer, where an itemized list
+ * belongs. On demo.test.geena.eu each card leads to the demo's own subdomain — every partner is
+ * its own origin, and so is every demo; on a bare host the same routes work path-style.
  */
 export default async function Landing() {
   const host = (await headers()).get('host') ?? '';
@@ -15,15 +16,12 @@ export default async function Landing() {
     <div className="min-h-screen">
       <main className="mx-auto max-w-6xl px-6">
         <header className="flex items-center justify-between py-7">
-          <span className="flex items-center gap-2.5 text-[15px] font-bold tracking-tight">
-            <span
-              className="flex h-7 w-7 items-center justify-center rounded-lg text-[13px] font-black text-white"
-              style={{ background: 'var(--geena)' }}
-              aria-hidden
-            >
-              G
+          <span className="flex items-baseline gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset */}
+            <img src="/geena/logo-black.svg" alt="Geena" className="h-[22px] w-auto" />
+            <span className="text-[15px] font-medium tracking-tight text-[color:var(--muted)]">
+              demos
             </span>
-            Geena demos
           </span>
           <a
             href="https://github.com/Identa-io/demo"
@@ -39,8 +37,8 @@ export default async function Landing() {
             Your data, asked for properly.
           </h1>
           <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-[color:var(--muted)]">
-            Three fictional companies — a fund platform, a travel insurer, a car-rental firm —
-            each integrating Geena the way a real partner would. Use your real email: the consent
+            Three fictional companies — a fund platform, a travel insurer, a car-rental firm — each
+            integrating Geena the way a real partner would. Use your real email: the consent
             ceremony you will see is the real one.
           </p>
         </section>
@@ -72,6 +70,10 @@ export default async function Landing() {
                   <p className="mt-1.5 text-[13px] leading-relaxed text-[color:var(--muted)]">
                     {demo.scenario}
                   </p>
+                  <p className="mt-1 text-[12px] text-[color:var(--muted)]">
+                    Asks for {demo.asks}.
+                  </p>
+
                   <p className="mt-3 flex-1 text-[12px] leading-relaxed">
                     <span className="font-semibold" style={{ color: 'var(--accent)' }}>
                       What it proves:
@@ -90,20 +92,25 @@ export default async function Landing() {
         <section className="my-12 grid gap-px overflow-hidden rounded-2xl bg-[color:var(--line)] ring-1 ring-[color:var(--line)] sm:grid-cols-3">
           {[
             [
-              '01 — Connect',
+              'Connect',
               'One hop to Geena: sign in or sign up there, one consent screen. The company never sees a password, a code, or your vault.',
             ],
             [
-              '02 — Grant',
+              'Grant',
               'You choose what each company gets, item by item, in your own Geena — and you can change your mind at any time.',
             ],
             [
-              '03 — Served fresh',
+              'Served fresh',
               'Companies read the current version of exactly what you granted. Every read leaves a receipt; revoking ends it, entirely.',
             ],
-          ].map(([title, text]) => (
+          ].map(([title, text], index) => (
             <div key={title} className="bg-[color:var(--card)] p-6">
-              <h3 className="tabular text-[12px] font-bold tracking-wide">{title}</h3>
+              <h3 className="flex items-baseline gap-2 text-[12px] font-bold tracking-wide">
+                <span className="vault-value text-[10px] text-[color:var(--muted)]">
+                  0{index + 1}
+                </span>
+                {title}
+              </h3>
               <p className="mt-2 text-[12px] leading-relaxed text-[color:var(--muted)]">{text}</p>
             </div>
           ))}
@@ -111,13 +118,14 @@ export default async function Landing() {
 
         <footer className="flex flex-col items-center gap-1 border-t border-[color:var(--line)] py-10 text-center text-[11px] text-[color:var(--muted)]">
           <p>
-            Vinst, Resa and Vagn are fictional. Everything runs against the Geena test
-            environment — no payments, no policies, no cars, and nothing stored beyond your demo
-            session.
+            Vinst, Resa and Vagn are fictional. Everything runs against the Geena test environment —
+            no payments, no policies, no cars, and nothing stored beyond your demo session.
           </p>
           <p>
-            Every page has a <strong className="font-semibold">Backstage</strong> button: the
-            manifest, the live connection, and each API call the integration made.
+            Data served from a vault is always set in{' '}
+            <span className="vault-value">this typeface</span> — so you can tell which pixels came
+            from Geena. Every page also has a <strong className="font-semibold">Backstage</strong>{' '}
+            button: the manifest, the live connection, and each API call the integration made.
           </p>
         </footer>
       </main>
@@ -129,10 +137,10 @@ export default async function Landing() {
 function CardArt({ slug }: { slug: DemoSlug }) {
   if (slug === 'vinst') {
     return (
-      <div className="flex h-32 items-end px-5 pb-4" style={{ background: '#10231d' }} aria-hidden>
+      <div className="flex h-32 items-end px-5 pb-4" style={{ background: '#0d211b' }} aria-hidden>
         <svg viewBox="0 0 240 64" className="w-full">
           {[16, 40].map((y) => (
-            <line key={y} x1="0" x2="240" y1={y} y2={y} stroke="#2a4038" strokeWidth="1" />
+            <line key={y} x1="0" x2="240" y1={y} y2={y} stroke="#28413a" strokeWidth="1" />
           ))}
           <path
             d="M0 56 L30 50 L60 53 L90 42 L120 38 L150 28 L180 32 L210 18 L240 10"
@@ -169,7 +177,15 @@ function CardArt({ slug }: { slug: DemoSlug }) {
     <div className="relative flex h-32 items-center" style={{ background: '#15171c' }} aria-hidden>
       <svg viewBox="0 0 240 128" className="h-full w-full">
         <path d="M0 84 L240 64" stroke="#3a3f4a" strokeWidth="26" />
-        <line x1="0" y1="84" x2="240" y2="64" stroke="#d9542b" strokeWidth="2.5" strokeDasharray="16 12" />
+        <line
+          x1="0"
+          y1="84"
+          x2="240"
+          y2="64"
+          stroke="#d9542b"
+          strokeWidth="2.5"
+          strokeDasharray="16 12"
+        />
         <circle cx="178" cy="52" r="3" fill="#f4f4f2" />
         <circle cx="196" cy="50" r="3" fill="#f4f4f2" />
       </svg>

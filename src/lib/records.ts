@@ -18,7 +18,7 @@ export function slotByKind(slots: DataSlot[] | undefined, kind: string): DataSlo
 /** First served document data for a target — the recipient's own record (no subject block). */
 export function docData(
   slots: DataSlot[] | undefined,
-  target: string
+  target: string,
 ): Record<string, unknown> | undefined {
   const slot = slotByTarget(slots, target);
   const record = slot?.records.find((r) => r.type === 'document' && !r.subject);
@@ -59,6 +59,34 @@ export function taxResidency(data: Record<string, unknown> | undefined): string 
   if (!country && !id) return '';
   const maskedId = id ? `TIN ····${id.replace(/\s/g, '').slice(-3)}` : '';
   return [country, maskedId].filter(Boolean).join(' · ');
+}
+
+/**
+ * One line of a candidate's current value for the picker row — recognition, not exposure:
+ * account numbers render masked, everything else shows what a person needs to tell their
+ * items apart ("which email is this?").
+ */
+export function candidateSummary(
+  target: string | undefined,
+  data: Record<string, unknown> | undefined,
+): string {
+  if (!data) return '';
+  switch (target) {
+    case 'PersonEmail':
+      return str(data.email);
+    case 'PersonPhone':
+      return str(data.telephone);
+    case 'PersonAddress':
+      return addressLines(data).join(', ');
+    case 'PersonBankAccount':
+      return maskedAccount(data);
+    case 'PersonFullName':
+      return fullName(data);
+    default: {
+      const first = Object.values(data).find((v) => typeof v === 'string' && v !== '');
+      return typeof first === 'string' ? first : '';
+    }
+  }
 }
 
 /** One family member as the organization sees them: the pairwise alias, never an identity. */
