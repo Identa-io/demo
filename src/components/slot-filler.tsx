@@ -18,23 +18,42 @@ import { LABEL_OPTIONS, SCHEMA_FIELDS, SINGLETON_TARGETS } from '@/lib/schema-fi
  *    their labels for a one-tap pick, plus an inline create that asks for a label of its own —
  *    "Work", "Mobile" — so the vault stays navigable.
  *
+ * With `current` set the same control becomes the UPDATE surface for an already-granted slot: a
+ * form prefilled from the served record, "Push update" writes the change into the vault through
+ * the delegated-write path (edit verb) — the org reads the current version on its next read.
+ * `bare` drops the card chrome and title for embedding inside a statement row.
+ *
  * Every act is user-present, receipted on the Geena side, and never leaves the page.
  */
 export function SlotFiller({
   demo,
   slot,
   person,
+  current,
+  bare,
   onFilled,
 }: {
   demo: DemoSlug;
   slot: DataSlot;
   person?: string;
+  current?: Record<string, unknown>;
+  bare?: boolean;
   onFilled: () => void;
 }) {
   const labelOptions = slot.target ? LABEL_OPTIONS[slot.target] : undefined;
+  const fields = slot.target ? (SCHEMA_FIELDS[slot.target] ?? []) : [];
+  const updateMode = !!current;
 
   const [candidates, setCandidates] = useState<CandidateItem[] | null>(null);
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>(() => {
+    if (!current) return {};
+    const initial: Record<string, string> = {};
+    for (const field of fields) {
+      const v = current[field.key];
+      if (typeof v === 'string' || typeof v === 'number') initial[field.key] = String(v);
+    }
+    return initial;
+  });
   const [prefilled, setPrefilled] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [label, setLabel] = useState(labelOptions?.[0] ?? '');
@@ -47,11 +66,11 @@ export function SlotFiller({
   // a proposed one follows the file.
   const labelTouched = useRef(false);
 
-  const fields = slot.target ? (SCHEMA_FIELDS[slot.target] ?? []) : [];
   const isFile = slot.kind === 'PERSONAL_FILES';
   const singleton = !!slot.target && SINGLETON_TARGETS.has(slot.target);
 
   const load = useCallback(async () => {
+    if (updateMode) return; // the update form starts from the served record, nothing to list
     const params = new URLSearchParams({ demo, slot: slot.slotId });
     if (person) params.set('person', person);
     const res = await fetch(`/api/fill/candidates?${params}`, { cache: 'no-store' });
@@ -81,7 +100,7 @@ export function SlotFiller({
     }
     // fields derives from slot.target, already a dependency via slot.slotId's stability.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [demo, slot.slotId, person, singleton]);
+  }, [demo, slot.slotId, person, singleton, updateMode]);
 
   useEffect(() => {
     void load();
@@ -120,6 +139,15 @@ export function SlotFiller({
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ demo, slotId: slot.slotId, data: data(), person }),
+      }),
+    );
+
+  const pushUpdate = () =>
+    run(() =>
+      fetch('/api/fill/update', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ demo, slotId: slot.slotId, data: data() }),
       }),
     );
 
@@ -190,12 +218,29 @@ export function SlotFiller({
 
   return (
     <div
-      className="rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-3.5"
+      className={
+        bare ? '' : 'rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-3.5'
+      }
       style={{ fontFamily: 'var(--font-inter)' }}
     >
-      <p className="text-[12px] font-semibold">{slot.label ?? slot.target}</p>
+      {!bare && <p className="text-[12px] font-semibold">{slot.label ?? slot.target}</p>}
 
-      {isFile ? (
+      {updateMode ? (
+        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+          {fieldInputs}
+          <button
+            onClick={() => void pushUpdate()}
+            disabled={busy || !dirty || empty}
+            className="btn-primary !px-3 !py-1.5 !text-[12px] sm:col-span-2"
+          >
+            {busy ? 'Saving…' : dirty ? 'Push update' : 'Up to date'}
+          </button>
+          <p className="text-[10px] leading-relaxed text-[color:var(--muted)] sm:col-span-2">
+            The change lands in your vault first — the organization reads the current version on its
+            next read. Nothing emailed, nothing retyped.
+          </p>
+        </div>
+      ) : isFile ? (
         <div className="mt-2 grid gap-2">
           {/* The picker itself is invisible; a real button opens it — a bare "choose file"
               control is too easy to miss. Picking proposes the vault name from the filename. */}

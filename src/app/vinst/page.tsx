@@ -19,8 +19,9 @@ export default function VinstHome() {
             Long-term investing, without the long form.
           </h1>
           <p className="mt-4 max-w-md text-[15px] leading-relaxed text-[color:var(--muted)]">
-            Three funds, one fee promise, and an account opening that takes minutes — your identity,
-            payout account and tax residency arrive from your Geena vault, not from a questionnaire.
+            Three funds, one fee promise, and an account that opens in minutes and stays current —
+            your identity, payout account and tax residency live in your Geena vault, not in our
+            filing cabinet.
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-4">
             <a href={`${base}/register`} className="btn-primary !px-6 !py-3 !text-[14px]">

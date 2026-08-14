@@ -6,7 +6,7 @@ integration. The demos sell the UX; this repo sells the code: everything a partn
 
 | Demo      | Scenario                                   | Proves                                                                                                                               |
 | --------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| **Vinst** | opening an account with a fund platform    | KYC-grade autofill: identity, payout account and tax residency arrive from the vault, current on every visit                         |
+| **Vinst** | running an account at a fund platform      | KYC-grade data that manages itself: fill from the vault, update in place, the org always reads the current version                   |
 | **Resa**  | travel insurance for you and your children | family data without "child 1 / child 2" forms — per-person pricing over exactly the children you chose to cover                      |
 | **Vagn**  | renting a car with a real account          | passwordless login (Geena is the whole auth stack), a licence shared without attachments, and a revocation that actually ends access |
 

@@ -25,11 +25,12 @@ export const DEMOS: Record<DemoSlug, DemoDefinition> = {
   vinst: {
     slug: 'vinst',
     name: 'Vinst',
-    scenario: 'Open an account with a fund platform — the onboarding form writes itself.',
+    scenario:
+      'Run your account at a fund platform — it opens from your vault and updates in place.',
     proves:
-      'KYC-grade autofill: identity, payout account and tax residency arrive from the vault, current on every visit.',
+      'KYC-grade data that manages itself: fill from the vault, update any value in place, and the organization reads the current version.',
     asks: 'identity, payout account and tax residency',
-    tags: ['account opening', 'autofill', 'KYC data'],
+    tags: ['account management', 'autofill', 'KYC data'],
     returnPath: '/register',
   },
   resa: {
