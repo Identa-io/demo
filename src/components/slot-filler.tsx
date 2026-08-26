@@ -350,7 +350,11 @@ export function SlotFiller({
                       className="shrink-0 text-[10px] font-semibold"
                       style={{ color: 'var(--accent)' }}
                     >
-                      {candidate.granted ? 'shared' : 'use this'}
+                      {candidate.granted
+                        ? 'shared'
+                        : !slot.multiple && candidates.some((c) => c.granted)
+                          ? 'switch to this'
+                          : 'use this'}
                     </span>
                   </button>
                 </li>
@@ -364,7 +368,15 @@ export function SlotFiller({
             }
           >
             {candidates !== null && (
-              <p className="field-label">{candidates.length ? 'Or add another' : 'Add it'}</p>
+              <p className="field-label">
+                {/* Cardinality decides the verb (slot-cardinality): a single slot's new value
+                    REPLACES the shared one server-side; only a multiple slot accrues. */}
+                {!candidates.length
+                  ? 'Add it'
+                  : !slot.multiple && candidates.some((c) => c.granted)
+                    ? 'Or replace it with a new one'
+                    : 'Or add another'}
+              </p>
             )}
             <div className="mt-1.5 grid gap-2 sm:grid-cols-2">
               {labelOptions && !customLabel ? (
