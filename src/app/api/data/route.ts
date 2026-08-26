@@ -27,6 +27,8 @@ export interface DataSlot {
   group?: string;
   /** The manifest subject this slot is about; absent = the recipient. */
   subject?: string;
+  /** Single (false/absent) or several — decides whether the filler offers "add another". */
+  multiple?: boolean;
   kind: string;
   target?: string;
   status: 'granted' | 'pending';
@@ -104,6 +106,7 @@ export async function GET(request: NextRequest) {
         label: item.label,
         group: item.group,
         subject: item.subject,
+        multiple: item.multiple,
         // The partner plane serves domain kinds in lowercase (`personal_files`); the demo's
         // components compare against the manifest-template casing (`PERSONAL_FILES`), so
         // normalize once here at the boundary.

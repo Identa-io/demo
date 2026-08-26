@@ -24,6 +24,12 @@ export interface StatusItem {
   group?: string;
   /** The ManifestSubject this slot is about; absent = the recipient. */
   subject?: string;
+  /**
+   * The slot's cardinality (slot-cardinality): false/absent — the default — means ONE standing
+   * grant, and a fill with a different resource replaces it; true means grants accrue. Gate any
+   * "add another" affordance on this.
+   */
+  multiple?: boolean;
   kind: string;
   target?: string;
   verbs: string[];
