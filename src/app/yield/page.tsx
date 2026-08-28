@@ -1,20 +1,22 @@
 'use client';
 
+import { GeenaButton } from '@/components/geena-button';
 import { useDemoBase } from '@/lib/use-geena';
 import { FUNDS } from './funds';
 
 /**
- * Vinst — a fund platform. The register flow is the demo; this page exists so the flow starts
- * where it would in real life: on a product page you were reading anyway.
+ * Yield — screen 1 of 3, the landing. Chapter 1 of the journey: the heaviest onboarding a
+ * person ever does (KYC), done once, into their own vault. The one CTA is the Geena button —
+ * the flow starts where it would in real life: on a product page you were reading anyway.
  */
-export default function VinstHome() {
-  const base = useDemoBase('vinst');
+export default function YieldHome() {
+  const base = useDemoBase('yield');
 
   return (
     <main>
       <section className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-16 lg:grid-cols-[1.1fr_1fr]">
         <div>
-          <p className="eyebrow">Index funds · Nordics</p>
+          <p className="eyebrow">Index funds · Europe</p>
           <h1 className="font-display mt-3 max-w-xl text-[44px] font-semibold leading-[1.06] tracking-tight">
             Long-term investing, without the long form.
           </h1>
@@ -24,9 +26,7 @@ export default function VinstHome() {
             filing cabinet.
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-4">
-            <a href={`${base}/register`} className="btn-primary !px-6 !py-3 !text-[14px]">
-              Open an account
-            </a>
+            <GeenaButton demo="yield" returnTo="/apply" label="Connect with Geena" size="lg" />
             <a href={`${base}/#funds`} className="btn-secondary">
               See the funds
             </a>
@@ -34,9 +34,9 @@ export default function VinstHome() {
           {/* Set like a statement extract: opens on a rule, closes over a double rule. */}
           <dl className="ledger-open ledger-close mt-10 grid max-w-md grid-cols-3 gap-6 pb-4 pt-4">
             {[
-              ['0.12–0.24%', 'annual fee'],
+              ['0.10–0.18%', 'annual fee'],
               ['3', 'index funds'],
-              ['SEK 4.1bn', 'under management'],
+              ['€3.8bn', 'under management'],
             ].map(([value, label]) => (
               <div key={label}>
                 <dt className="tabular text-[19px] font-semibold">{value}</dt>
@@ -50,11 +50,11 @@ export default function VinstHome() {
         <div className="card p-6">
           <div className="flex items-baseline justify-between">
             <div>
-              <p className="text-[13px] font-semibold">Vinst Norden Index</p>
+              <p className="text-[13px] font-semibold">Yield Global Index</p>
               <p className="text-[11px] text-[color:var(--muted)]">5 years, indexed to 100</p>
             </div>
             <p className="tabular text-[15px] font-semibold" style={{ color: 'var(--accent)' }}>
-              +62.4%
+              +58.2%
             </p>
           </div>
           <svg
@@ -64,7 +64,7 @@ export default function VinstHome() {
             aria-label="Illustrative five-year performance chart"
           >
             <defs>
-              <linearGradient id="vinst-fill" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="yield-fill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.18" />
                 <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
               </linearGradient>
@@ -81,12 +81,12 @@ export default function VinstHome() {
             />
             <path
               d="M0 118 L28 112 L56 116 L84 100 L112 96 L140 84 L168 90 L196 72 L224 60 L252 66 L280 44 L320 30 L320 140 L0 140 Z"
-              fill="url(#vinst-fill)"
+              fill="url(#yield-fill)"
             />
           </svg>
           <p className="mt-3 text-[10px] leading-relaxed text-[color:var(--muted)]">
             Illustrative figures. Capital at risk — the value of investments can go down as well as
-            up. Vinst is a fictional platform; this is a Geena demo.
+            up. Yield is a fictional platform; this is a Geena demo.
           </p>
         </div>
       </section>
@@ -151,13 +151,11 @@ export default function VinstHome() {
               Ready when you are.
             </h2>
             <p className="mt-1 text-[13px] text-[color:var(--muted)]">
-              Identity, payout account and tax residency — one consent, no retyping, always the
-              current version.
+              Identity, ID document, payout account and tax residency — typed once, into your
+              vault, current forever after.
             </p>
           </div>
-          <a href={`${base}/register`} className="btn-primary shrink-0 !px-6 !py-3 !text-[14px]">
-            Open an account
-          </a>
+          <GeenaButton demo="yield" returnTo="/apply" label="Connect with Geena" />
         </div>
       </section>
     </main>

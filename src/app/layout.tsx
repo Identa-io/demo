@@ -16,9 +16,9 @@ const jbmono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Geena demos',
+  title: 'Geena journey',
   description:
-    'Three fictional brands built on Connect with Geena: account opening, family travel insurance, passwordless car rental.',
+    'One journey, three fictional brands built on Connect with Geena: type your data once (Yield), reuse it with zero typing (Signalio), then family subjects and file slots (Cover).',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

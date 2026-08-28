@@ -1,12 +1,16 @@
+'use client';
+
 import type { DemoSlug } from '@/lib/demos';
 import { DEMOS } from '@/lib/demos';
+import { useHubHref } from '@/lib/use-geena';
 import { BackstageDrawer } from './backstage-drawer';
 
 /**
  * The neutral Geena chrome every demo shares (brand ≠ chrome): a slim disclaimer bar, the way
- * back to the gallery, and the backstage drawer.
+ * back to the journey hub, and the backstage drawer.
  */
 export function DemoChrome({ demo }: { demo: DemoSlug }) {
+  const hub = useHubHref();
   return (
     <>
       <footer
@@ -15,13 +19,13 @@ export function DemoChrome({ demo }: { demo: DemoSlug }) {
       >
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 py-6 text-[11px] text-[color:var(--muted)] sm:flex-row">
           <p>
-            {DEMOS[demo].name} is a fictional brand — a{' '}
-            <span className="font-semibold">Geena demo</span>. Nothing is sold, stored or
+            {DEMOS[demo].name} is a fictional brand — chapter {DEMOS[demo].chapter} of a{' '}
+            <span className="font-semibold">Geena demo journey</span>. Nothing is sold, stored or
             underwritten here.
           </p>
           <nav className="flex items-center gap-4">
-            <a href="/" className="hover:text-[color:var(--ink)]">
-              All demos
+            <a href={hub} className="hover:text-[color:var(--ink)]">
+              The journey
             </a>
             <a href="https://github.com/Identa-io/demo" className="hover:text-[color:var(--ink)]">
               Source

@@ -1,5 +1,5 @@
 {
-  "name": "Vinst account opening",
+  "name": "Yield account opening",
   "initiation": "BOTH",
   "groups": [
     { "id": "identity", "label": "Identity", "order": 1 },
@@ -13,6 +13,20 @@
       "group": "identity",
       "kind": "SCHEMA",
       "target": "PersonFullName",
+      "verbs": ["FILL", "EDIT", "KEEP"]
+    },
+    {
+      "label": "Date of birth",
+      "group": "identity",
+      "kind": "SCHEMA",
+      "target": "PersonBirthDetails",
+      "verbs": ["FILL", "EDIT", "KEEP"]
+    },
+    {
+      "label": "Identity document",
+      "group": "identity",
+      "kind": "SCHEMA",
+      "target": "PersonIdentityDocument",
       "verbs": ["FILL", "EDIT", "KEEP"]
     },
     {
@@ -37,7 +51,7 @@
       "verbs": ["FILL", "EDIT", "KEEP"]
     },
     {
-      "label": "Payout account",
+      "label": "Payout account (IBAN)",
       "group": "payout",
       "kind": "SCHEMA",
       "target": "PersonBankAccount",
@@ -59,6 +73,6 @@
     "rightToErasure": false,
     "rightToRectification": true,
     "allowDownload": false,
-    "privacyPolicyUrl": "https://demo.test.geena.eu/vinst/privacy"
+    "privacyPolicyUrl": "https://demo.test.geena.eu/yield/privacy"
   }
 }

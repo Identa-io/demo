@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isDemoSlug } from '@/lib/demos';
 import { demoSession, getSession } from '@/lib/session';
-import vinst from '../../../../manifests/vinst.json';
-import resa from '../../../../manifests/resa.json';
-import vagn from '../../../../manifests/vagn.json';
+import yieldManifest from '../../../../manifests/yield.json';
+import signalio from '../../../../manifests/signalio.json';
+import cover from '../../../../manifests/cover.json';
 
-const MANIFESTS = { vinst, resa, vagn } as const;
+const MANIFESTS = { yield: yieldManifest, signalio, cover } as const;
 
 /**
  * The backstage drawer's data: the manifest this demo opens, the live connection ids, and the
