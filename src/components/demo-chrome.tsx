@@ -1,35 +1,26 @@
 'use client';
 
 import type { DemoSlug } from '@/lib/demos';
-import { DEMOS } from '@/lib/demos';
 import { useHubHref } from '@/lib/use-geena';
 import { BackstageDrawer } from './backstage-drawer';
 
 /**
- * The neutral Geena chrome every demo shares (brand ≠ chrome): a slim disclaimer bar, the way
- * back to the journey hub, and the backstage drawer.
+ * The shared page tail, restyled per the design contract: a minimal right-aligned footer nav
+ * (each brand sets its own typography via .site-footer-nav) and the backstage drawer. The
+ * fictional-brand disclaimers now live in the pages' own fine print, where the design put them.
  */
 export function DemoChrome({ demo }: { demo: DemoSlug }) {
   const hub = useHubHref();
   return (
     <>
       <footer
-        className="mt-16 border-t border-[color:var(--line)]"
-        style={{ fontFamily: 'var(--font-inter)' }}
+        className="mt-12 border-t border-[color:var(--line)]"
+        style={{ background: 'var(--footer-bg, transparent)' }}
       >
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 py-6 text-[11px] text-[color:var(--muted)] sm:flex-row">
-          <p>
-            {DEMOS[demo].name} is a fictional brand — chapter {DEMOS[demo].chapter} of a{' '}
-            <span className="font-semibold">Geena demo journey</span>. Nothing is sold, stored or
-            underwritten here.
-          </p>
-          <nav className="flex items-center gap-4">
-            <a href={hub} className="hover:text-[color:var(--ink)]">
-              The journey
-            </a>
-            <a href="https://github.com/Identa-io/demo" className="hover:text-[color:var(--ink)]">
-              Source
-            </a>
+        <div className="mx-auto flex max-w-6xl items-center justify-end px-6 py-6">
+          <nav className="site-footer-nav">
+            <a href={hub}>The journey</a>
+            <a href="https://github.com/Identa-io/demo">Source</a>
           </nav>
         </div>
       </footer>

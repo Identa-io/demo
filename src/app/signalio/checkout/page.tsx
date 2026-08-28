@@ -8,10 +8,9 @@ import { addressLines, docData, fullName, maskedAccount, slotByTarget } from '@/
 import { useDemoBase, useGeena } from '@/lib/use-geena';
 
 /**
- * Signalio — screen 2 of 3, the form stage. The chapter's entire point is what this form is
- * NOT: there is nothing to type. Every ask resolves from the vault — singleton forms arrive
- * prefilled ("Confirm & share"), instances are a one-tap pick. The counter keeps the score
- * honest: fields typed stays at zero.
+ * Signalio — screen 2 of 3, the form stage, cut to the bone per the design: one card of
+ * subscriber details resolving from the vault, one order ticket. The chapter's entire point is
+ * what this page is NOT — there is nothing to type, so there is almost nothing on it.
  */
 export default function SignalioCheckout() {
   const base = useDemoBase('signalio');
@@ -43,19 +42,17 @@ export default function SignalioCheckout() {
   const provided = rows.filter((row) => row.value).length;
   const complete = managing && provided === rows.length;
 
+  let fieldIndex = 0;
+
   return (
     <main className="mx-auto grid max-w-6xl gap-10 px-6 py-10 lg:grid-cols-[1.1fr_1fr]">
       <section>
         <p className="eyebrow">Checkout</p>
-        <h1 className="font-display mt-2 text-3xl font-bold tracking-tight">
+        <h1 className="font-display mt-2 text-[30px] font-bold tracking-tight">
           Start your subscription.
         </h1>
-        <p className="mt-2 max-w-lg text-[13px] leading-relaxed text-[color:var(--muted)]">
-          Four data points, all of them already in your vault. Notice what you are{' '}
-          <em>not</em> doing on this page.
-        </p>
 
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 flex flex-col gap-4">
           {data && !data.configured && <StateNotice tone="info">{data.configureHint}</StateNotice>}
 
           {denied && !connected && (
@@ -85,16 +82,12 @@ export default function SignalioCheckout() {
 
           {managing && (
             <div className="card p-5">
-              <div className="flex items-baseline justify-between">
-                <h2 className="text-[13px] font-semibold">Subscriber details</h2>
-                <span className="vault-value text-[10px] text-[color:var(--muted)]">
-                  {provided} / {rows.length} from your vault
-                </span>
-              </div>
-              <div className="mt-3 space-y-3">
+              <h2 className="text-[13px] font-semibold">Subscriber details</h2>
+              <div className="mt-3 flex flex-col gap-3">
                 {rows.map((row) => {
                   const slot = slotByTarget(slots, row.target);
                   const pendingFill = !!slot && slot.status === 'pending';
+                  const delay = row.value ? `${fieldIndex++ * 120}ms` : undefined;
                   return (
                     <div key={row.label}>
                       <p className="field-label">{row.label}</p>
@@ -113,6 +106,7 @@ export default function SignalioCheckout() {
                           className={`mt-1 min-h-10 rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-2.5 text-[13.5px] ${
                             row.value ? 'fill-in vault-value' : 'text-[color:var(--muted)]'
                           }`}
+                          style={delay ? { animationDelay: delay } : undefined}
                         >
                           {row.value || 'Waiting for your vault'}
                         </div>
@@ -121,32 +115,12 @@ export default function SignalioCheckout() {
                   );
                 })}
               </div>
-              <p className="mt-3 text-[10px] leading-relaxed text-[color:var(--muted)]">
-                A pick or a confirm is a consented, receipted act — not typing. If a value looks
-                stale, correct it once; every connection you have reads the new version.
-              </p>
             </div>
-          )}
-
-          {managing && (
-            <p className="text-center text-[11px] text-[color:var(--muted)]">
-              Changed your mind?{' '}
-              <button
-                onClick={async () => {
-                  await fetch('/api/revoke?demo=signalio', { method: 'POST' });
-                  void refresh();
-                }}
-                className="underline underline-offset-2 hover:opacity-70"
-              >
-                Disconnect Geena
-              </button>{' '}
-              — Signalio keeps nothing.
-            </p>
           )}
         </div>
       </section>
 
-      <aside className="space-y-4 lg:sticky lg:top-6 h-fit">
+      <aside className="sticky top-6 flex h-fit flex-col gap-4 lg:mt-[85px]">
         <div className="card p-6">
           <p className="eyebrow">Your order</p>
           <div className="mt-3 flex items-baseline justify-between">
@@ -156,42 +130,26 @@ export default function SignalioCheckout() {
           <p className="mt-1 text-[12px] text-[color:var(--muted)]">
             The Morning Signal, weekdays 07:00 · SEPA direct debit · cancel anytime
           </p>
-          <div className="mt-5 space-y-2 border-t border-[color:var(--line)] pt-4 text-[12px]">
-            {[
-              ['Data points asked for', '4'],
-              ['Fields you typed', '0'],
-              ['Passwords created', '0'],
-            ].map(([item, amount]) => (
-              <div key={item} className="leader-row">
-                <span className="text-[color:var(--muted)]">{item}</span>
-                <span className="leader-fill" aria-hidden />
-                <span className="tabular font-semibold">{amount}</span>
-              </div>
-            ))}
-          </div>
           <a
             href={complete ? `${base}/done` : undefined}
             aria-disabled={!complete}
             className={`btn-primary mt-5 w-full !py-3 !text-[14px] ${
               complete ? '' : 'pointer-events-none opacity-40'
             }`}
-            style={{ background: 'var(--accent)' }}
           >
             {complete ? 'Start my subscription →' : 'Waiting for your vault…'}
           </a>
-          <p className="mt-3 text-[10px] leading-relaxed text-[color:var(--muted)]">
-            Illustrative pricing. Signalio is fictional; no mandate is signed and no payment
-            happens.
-          </p>
-        </div>
-
-        <div className="card p-5">
-          <p className="eyebrow">Why so little?</p>
-          <p className="mt-2 text-[12px] leading-relaxed text-[color:var(--muted)]">
-            A subscription needs a subscriber, somewhere to deliver, and a way to collect €12 —
-            so that is the whole manifest. The small ask is not politeness; on a consent screen,
-            over-asking is visible. Minimal manifests convert.
-          </p>
+          {managing && (
+            <button
+              onClick={async () => {
+                await fetch('/api/revoke?demo=signalio', { method: 'POST' });
+                void refresh();
+              }}
+              className="btn-secondary mt-2.5 w-full !py-3 !text-[14px]"
+            >
+              Disconnect Geena
+            </button>
+          )}
         </div>
       </aside>
     </main>

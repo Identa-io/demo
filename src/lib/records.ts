@@ -53,6 +53,15 @@ export function maskedAccount(data: Record<string, unknown> | undefined): string
   return [bank, `···· ${tail}`].filter(Boolean).join(' ');
 }
 
+/** "WEBER/ANNA" — a name set the way boarding passes have always set them (Cover's ticket). */
+export function passengerCode(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '';
+  if (parts.length === 1) return parts[0].toUpperCase();
+  const last = parts[parts.length - 1];
+  return `${last}/${parts.slice(0, -1).join(' ')}`.toUpperCase();
+}
+
 /** "Passport ···· 417 · DE" — a review screen needs recognition, never the whole number. */
 export function maskedDocument(data: Record<string, unknown> | undefined): string {
   const number = str(data?.documentNumber);
