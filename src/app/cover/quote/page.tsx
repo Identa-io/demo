@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { BulkSlotFields } from '@/components/bulk-fill-fields';
 import { GeenaButton } from '@/components/geena-button';
 import { StateNotice } from '@/components/demo-chrome';
 import { FamilyManager } from '@/components/family-manager';
-import { PendingFills } from '@/components/pending-fills';
 import { SlotFiller } from '@/components/slot-filler';
 import { ageFrom, docData, familyFromSlots, fullName, slotByKind } from '@/lib/records';
+import { useBulkFill } from '@/lib/use-bulk-fill';
 import { useDemoBase, useGeena } from '@/lib/use-geena';
 import { DESTINATIONS, tripPrice, ZONE_CODE, type Destination } from '../pricing';
 
@@ -21,6 +22,7 @@ export default function CoverQuote() {
   const base = useDemoBase('cover');
   const { data, refresh } = useGeena('cover');
   const [denied, setDenied] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [destination, setDestination] = useState<Destination>('Europe');
   const [days, setDays] = useState(7);
 
@@ -43,6 +45,18 @@ export default function CoverQuote() {
   const managing = connected && !data?.accessEnded;
   const hasTravellers = !!holderName;
 
+  const form = useBulkFill('cover', managing ? slots : undefined);
+  const pendingSlots = (slots ?? []).filter(
+    (slot) => slot.target && !slot.subject && slot.status === 'pending',
+  );
+  const pendingReady =
+    pendingSlots.length > 0 && pendingSlots.every((slot) => form.slotReady(slot));
+  const pendingComplete =
+    pendingSlots.length === 0 ||
+    (pendingReady && pendingSlots.every((slot) => form.slotComplete(slot)));
+  const canBuy = managing && (hasTravellers || pendingSlots.length > 0) && pendingComplete;
+  const failedCount = Object.keys(form.errors).length;
+
   const price = useMemo(
     () => tripPrice({ destination, days, childCount: children.length, switching }),
     [destination, days, children.length, switching],
@@ -50,6 +64,19 @@ export default function CoverQuote() {
 
   const doneHref = `${base}/done?destination=${encodeURIComponent(destination)}&days=${days}`;
   const dayWord = days === 1 ? 'day' : 'days';
+
+  const buy = async () => {
+    if (pendingSlots.length > 0) {
+      setSubmitting(true);
+      const ok = await form.submitAll();
+      if (!ok) {
+        setSubmitting(false);
+        void refresh();
+        return;
+      }
+    }
+    window.location.href = doneHref;
+  };
 
   return (
     <main className="mx-auto max-w-6xl px-6">
@@ -111,14 +138,31 @@ export default function CoverQuote() {
                     </div>
                   )}
 
-                  <div className="mt-3">
-                    <PendingFills
-                      demo="cover"
-                      slots={data?.slots}
-                      onChanged={() => void refresh()}
-                      title="Policyholder"
-                    />
-                  </div>
+                  {pendingSlots.length > 0 && (
+                    <div className="mt-3">
+                      <p className="field-label">Policyholder</p>
+                      <div className="mt-2 grid gap-x-4 gap-y-3 sm:grid-cols-2">
+                        {pendingSlots.map((slot) => (
+                          <div
+                            key={slot.slotId}
+                            className={
+                              slot.target === 'PersonAddress' ? 'sm:col-span-2' : ''
+                            }
+                          >
+                            <p className="font-mono text-[9.5px] tracking-[0.1em] text-[color:var(--mono-muted)]">
+                              {(slot.label ?? slot.target ?? '').toUpperCase()}
+                            </p>
+                            <div className="mt-1">
+                              <BulkSlotFields slot={slot} form={form} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="mt-2 text-[10px] leading-relaxed text-[color:var(--muted)]">
+                        Prefilled from your vault — buying the policy shares it all in one act.
+                      </p>
+                    </div>
+                  )}
 
                   {hasTravellers && (
                     <ul className="mt-3">
@@ -286,15 +330,23 @@ export default function CoverQuote() {
                   </div>
                 ))}
               </div>
-              <a
-                href={hasTravellers ? doneHref : undefined}
-                aria-disabled={!hasTravellers}
-                className={`btn-primary mt-5 w-full !py-3 !text-[14px] !font-bold ${
-                  hasTravellers ? '' : 'pointer-events-none opacity-40'
-                }`}
+              <button
+                onClick={() => void buy()}
+                disabled={!canBuy || form.busy || submitting}
+                className="btn-primary mt-5 w-full !py-3 !text-[14px] !font-bold"
               >
-                {hasTravellers ? 'Buy policy (simulated) →' : 'Add travellers first'}
-              </a>
+                {form.busy || submitting
+                  ? 'Sharing from your vault…'
+                  : canBuy || hasTravellers
+                    ? 'Buy policy (simulated) →'
+                    : 'Connect first'}
+              </button>
+              {failedCount > 0 && (
+                <p className="mt-2 text-[11px] text-red-700">
+                  {failedCount} data point{failedCount === 1 ? '' : 's'} did not land — details
+                  under the fields. Fix and buy again.
+                </p>
+              )}
               {managing && (
                 <button
                   onClick={async () => {

@@ -1,83 +1,80 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { DataSlot } from '@/app/api/data/route';
+import { BulkSlotFields } from '@/components/bulk-fill-fields';
 import { GeenaButton } from '@/components/geena-button';
 import { StateNotice } from '@/components/demo-chrome';
-import { SlotFiller } from '@/components/slot-filler';
-import {
-  addressLines,
-  docData,
-  fullName,
-  maskedAccount,
-  maskedDocument,
-  slotByTarget,
-  taxResidency,
-} from '@/lib/records';
+import { SCHEMA_FIELDS } from '@/lib/schema-fields';
+import { slotByTarget } from '@/lib/records';
+import { useBulkFill } from '@/lib/use-bulk-fill';
 import { useDemoBase, useGeena } from '@/lib/use-geena';
 import { YieldHeader } from '../header';
 
 /**
- * Yield — screen 2 of 3, the form stage, set as an engraved statement: Cormorant section heads,
- * Plex Mono values in square paper boxes, sections opening on hairlines and the application
- * closing over a double rule. Every keystroke lands in the visitor's vault, not in Yield's
- * database; a filled row opens into an update that writes back through the delegated-write path.
+ * Yield — screen 2 of 3, the form stage, set as one engraved application: every field is an
+ * ordinary aligned input, prefilled from the vault where it can be, and ONE closing act pushes
+ * the whole application — no per-data-point confirm buttons. Under the hood each slot still
+ * lands as its own consented, receipted write (attach / set / create / update — see
+ * useBulkFill); only the choreography is gone.
  */
+
+const SECTIONS: { title: string; targets: string[] }[] = [
+  {
+    title: 'Identity',
+    targets: [
+      'PersonFullName',
+      'PersonBirthDetails',
+      'PersonIdentityDocument',
+      'PersonEmail',
+      'PersonPhone',
+    ],
+  },
+  { title: 'Residential address', targets: ['PersonAddress'] },
+  { title: 'Payout account', targets: ['PersonBankAccount'] },
+  { title: 'Tax residency', targets: ['PersonTaxStatus'] },
+];
+
 export default function YieldApply() {
   const base = useDemoBase('yield');
   const { data, refresh } = useGeena('yield');
   const [denied, setDenied] = useState(false);
-  const [openTarget, setOpenTarget] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     setDenied(new URLSearchParams(window.location.search).has('denied'));
   }, []);
 
   const slots = data?.slots;
-  const name = fullName(docData(slots, 'PersonFullName'));
-  const birth = String(docData(slots, 'PersonBirthDetails')?.dateOfBirth ?? '');
-  const idDoc = maskedDocument(docData(slots, 'PersonIdentityDocument'));
-  const email = String(docData(slots, 'PersonEmail')?.email ?? '');
-  const phone = String(docData(slots, 'PersonPhone')?.telephone ?? '');
-  const address = addressLines(docData(slots, 'PersonAddress'));
-  const payout = maskedAccount(docData(slots, 'PersonBankAccount'));
-  const tax = taxResidency(docData(slots, 'PersonTaxStatus'));
-
   const connected = data?.connected ?? false;
   const managing = connected && !data?.accessEnded;
 
-  const sections: {
-    title: string;
-    rows: { label: string; target: string; value: string }[];
-  }[] = [
-    {
-      title: 'Identity',
-      rows: [
-        { label: 'Full name', target: 'PersonFullName', value: name },
-        { label: 'Date of birth', target: 'PersonBirthDetails', value: birth },
-        { label: 'Identity document', target: 'PersonIdentityDocument', value: idDoc },
-        { label: 'Email', target: 'PersonEmail', value: email },
-        { label: 'Phone', target: 'PersonPhone', value: phone },
-      ],
-    },
-    {
-      title: 'Residential address',
-      rows: [{ label: 'Address', target: 'PersonAddress', value: address.join(' · ') }],
-    },
-    {
-      title: 'Payout account',
-      rows: [{ label: 'IBAN', target: 'PersonBankAccount', value: payout }],
-    },
-    {
-      title: 'Tax residency',
-      rows: [{ label: 'Residency', target: 'PersonTaxStatus', value: tax }],
-    },
-  ];
+  const form = useBulkFill('yield', managing ? slots : undefined);
+  const { submitAll, busy, errors, slotReady, slotComplete } = form;
 
-  const allRows = sections.flatMap((section) => section.rows);
-  const providedRows = allRows.filter((row) => row.value).length;
-  const complete = managing && providedRows === allRows.length;
+  const sectionSlots = SECTIONS.map((section) => ({
+    ...section,
+    slots: section.targets
+      .map((target) => slotByTarget(slots, target))
+      .filter((slot): slot is DataSlot => !!slot),
+  }));
+  const allSlots = sectionSlots.flatMap((section) => section.slots);
+  const readySlots = allSlots.filter((slot) => slotReady(slot));
+  const completeCount = allSlots.filter((slot) => slotReady(slot) && slotComplete(slot)).length;
+  const allComplete = allSlots.length > 0 && completeCount === allSlots.length;
+  const loading = managing && (allSlots.length === 0 || readySlots.length < allSlots.length);
+  const failedCount = Object.keys(errors).length;
 
-  let fieldIndex = 0;
+  const submit = async () => {
+    setSubmitting(true);
+    const ok = await submitAll();
+    if (ok) {
+      window.location.href = `${base}/done`;
+      return;
+    }
+    setSubmitting(false);
+    void refresh();
+  };
 
   return (
     <>
@@ -85,9 +82,7 @@ export default function YieldApply() {
       <main className="mx-auto grid w-full max-w-6xl gap-12 px-6 py-12 lg:grid-cols-[1fr_19rem]">
         <section>
           <p className="eyebrow">Account application</p>
-          <h1 className="font-display mt-2.5 text-[38px] font-semibold">
-            {name ? name : 'Open your account'}
-          </h1>
+          <h1 className="font-display mt-2.5 text-[38px] font-semibold">Open your account</h1>
           <p className="mt-2.5 max-w-lg text-[13.5px] leading-[1.7] text-[color:var(--muted)]">
             Regulation says we must hold current data on who you are, where you pay tax, and where
             withdrawals go. It does not say you have to retype it when life changes — or ever
@@ -122,79 +117,33 @@ export default function YieldApply() {
               </div>
             )}
 
-            {managing && (
+            {managing && loading && (
+              <p className="text-[13px] italic text-[color:var(--muted)]">
+                Reading your vault…
+              </p>
+            )}
+
+            {managing && !loading && (
               <>
                 <div className="flex flex-col gap-7 pt-2">
-                  {sections.map((section, sectionIndex) => (
+                  {sectionSlots.map((section, sectionIndex) => (
                     <section key={section.title} className="ledger-open pt-3">
                       <div className="flex items-baseline justify-between">
                         <h2 className="font-display text-[19px] font-semibold">{section.title}</h2>
                         <span className="font-mono text-[10px] text-[color:var(--gold)]">
                           {String(sectionIndex + 1).padStart(2, '0')} /{' '}
-                          {String(sections.length).padStart(2, '0')}
+                          {String(sectionSlots.length).padStart(2, '0')}
                         </span>
                       </div>
-                      <div className="mt-3 grid gap-3.5 sm:grid-cols-2">
-                        {section.rows.map((row) => {
-                          const slot = slotByTarget(slots, row.target);
-                          const record = slot?.records?.find((r) => r.type === 'document');
-                          const editing = openTarget === row.target;
-                          const pendingFill = !!slot && !record && slot.status === 'pending';
-                          const delay = row.value ? `${fieldIndex++ * 120}ms` : undefined;
+                      <div className="mt-3 grid gap-x-5 gap-y-3.5 sm:grid-cols-2">
+                        {section.slots.map((slot) => {
+                          const wide = (SCHEMA_FIELDS[slot.target!] ?? []).length > 2;
                           return (
-                            <div
-                              key={row.label}
-                              className={section.rows.length === 1 ? 'sm:col-span-2' : ''}
-                            >
-                              <div className="flex items-baseline justify-between">
-                                <p className="field-label">{row.label}</p>
-                                {record && (
-                                  <button
-                                    onClick={() => setOpenTarget(editing ? null : row.target)}
-                                    className="text-[9.5px] font-semibold uppercase tracking-[0.14em] underline underline-offset-[3px] hover:opacity-70"
-                                  >
-                                    {editing ? 'Close' : 'Update'}
-                                  </button>
-                                )}
+                            <div key={slot.slotId} className={wide ? 'sm:col-span-2' : ''}>
+                              <p className="field-label">{slot.label ?? slot.target}</p>
+                              <div className="mt-1.5">
+                                <BulkSlotFields slot={slot} form={form} />
                               </div>
-                              {pendingFill ? (
-                                <div className="mt-1.5 border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-2.5">
-                                  <SlotFiller
-                                    bare
-                                    demo="yield"
-                                    slot={slot}
-                                    onFilled={() => void refresh()}
-                                  />
-                                </div>
-                              ) : (
-                                <>
-                                  <div
-                                    key={row.value || 'empty'}
-                                    className={`mt-1.5 min-h-10 border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-2.5 ${
-                                      row.value
-                                        ? 'fill-in font-mono tabular text-[13px]'
-                                        : 'text-[13px] italic text-[color:var(--muted)]'
-                                    }`}
-                                    style={delay ? { animationDelay: delay } : undefined}
-                                  >
-                                    {row.value || 'Waiting for your vault'}
-                                  </div>
-                                  {editing && record && slot && (
-                                    <div className="mt-2 border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-2.5">
-                                      <SlotFiller
-                                        bare
-                                        demo="yield"
-                                        slot={slot}
-                                        current={(record.data ?? {}) as Record<string, unknown>}
-                                        onFilled={() => {
-                                          setOpenTarget(null);
-                                          void refresh();
-                                        }}
-                                      />
-                                    </div>
-                                  )}
-                                </>
-                              )}
                             </div>
                           );
                         })}
@@ -205,34 +154,49 @@ export default function YieldApply() {
                   <div className="ledger-close flex items-baseline justify-between pb-2.5 pt-1">
                     <span className="font-display text-[17px] font-semibold">Application</span>
                     <span className="font-mono text-[12px]">
-                      {providedRows} / {allRows.length} provided
+                      {completeCount} / {allSlots.length} ready
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-3">
-                  <button
-                    onClick={async () => {
-                      await fetch('/api/revoke?demo=yield', { method: 'POST' });
-                      void refresh();
-                    }}
-                    className="border border-[color:var(--line)] px-5 py-3 text-[13.5px] font-semibold text-[color:var(--muted)] transition-opacity hover:opacity-75"
-                    style={{ fontFamily: 'var(--font-inter)' }}
-                  >
-                    Disconnect Geena
-                  </button>
-                  <a
-                    href={complete ? `${base}/done` : undefined}
-                    aria-disabled={!complete}
-                    className={`inline-flex items-center gap-2 px-6 py-3 text-[13.5px] font-semibold text-[#f5f3ea] transition-opacity hover:opacity-90 ${
-                      complete ? '' : 'pointer-events-none opacity-40'
-                    }`}
-                    style={{ background: 'var(--cta)', fontFamily: 'var(--font-inter)' }}
-                  >
-                    {complete
-                      ? 'Open my account →'
-                      : `Provide ${allRows.length - providedRows} more`}
-                  </a>
+                {failedCount > 0 && (
+                  <StateNotice tone="denied">
+                    {failedCount} of {allSlots.length} data points did not land — the details are
+                    under the fields. Fix and submit again; what already landed stays shared.
+                  </StateNotice>
+                )}
+
+                <div className="flex flex-col items-end gap-2">
+                  <div className="flex items-center justify-end gap-3">
+                    <button
+                      onClick={async () => {
+                        await fetch('/api/revoke?demo=yield', { method: 'POST' });
+                        void refresh();
+                      }}
+                      className="border border-[color:var(--line)] px-5 py-3 text-[13.5px] font-semibold text-[color:var(--muted)] transition-opacity hover:opacity-75"
+                      style={{ fontFamily: 'var(--font-inter)' }}
+                    >
+                      Disconnect Geena
+                    </button>
+                    <button
+                      onClick={() => void submit()}
+                      disabled={!allComplete || busy || submitting}
+                      className="inline-flex items-center gap-2 px-6 py-3 text-[13.5px] font-semibold text-[#f5f3ea] transition-opacity hover:opacity-90 disabled:opacity-40"
+                      style={{ background: 'var(--cta)', fontFamily: 'var(--font-inter)' }}
+                    >
+                      {busy || submitting
+                        ? 'Writing to your vault…'
+                        : allComplete
+                          ? 'Open my account →'
+                          : `Complete ${allSlots.length - completeCount} more`}
+                    </button>
+                  </div>
+                  <p className="max-w-md text-right text-[11px] leading-relaxed text-[color:var(--muted)]">
+                    One act shares the whole application: values already in your vault are handed
+                    over as they are, everything you typed or corrected is written to your vault
+                    first — then Yield reads it. Each data point still lands as its own receipted
+                    share.
+                  </p>
                 </div>
               </>
             )}
@@ -252,15 +216,18 @@ export default function YieldApply() {
                 ],
                 [
                   'Fill once',
-                  'Every field you type here is written into YOUR vault and shared in the same act — the last time you ever type it.',
+                  'The form arrives prefilled from your vault. Whatever you type or correct is written into YOUR vault when you submit — the last time you ever type it.',
                 ],
                 [
                   'Stay current',
-                  'Update any value in place, and Yield reads the new version. So will chapters 2 and 3 — without asking you to type at all.',
+                  'Update any value here later, and Yield reads the new version. So will chapters 2 and 3 — without asking you to type at all.',
                 ],
               ].map(([title, text], index) => (
                 <li key={title} className="flex gap-3">
-                  <span className="font-mono flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-[color:var(--accent-ink)]" style={{ background: 'var(--ink)' }}>
+                  <span
+                    className="font-mono flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-[color:var(--accent-ink)]"
+                    style={{ background: 'var(--ink)' }}
+                  >
                     {index + 1}
                   </span>
                   <span>
