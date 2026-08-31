@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DEMO_SLUGS, demoBasePath, externalOrigin, type DemoSlug } from '@/lib/demos';
 import { exchangeCode } from '@/lib/geena/oauth';
-import { issueVagnSession } from '@/lib/vagn-auth';
 import { demoSession, getSession } from '@/lib/session';
 
 /**
@@ -13,7 +12,7 @@ import { demoSession, getSession } from '@/lib/session';
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const state = params.get('state') ?? '';
-  const { sid, session } = await getSession();
+  const { session } = await getSession();
 
   // Which demo does this callback belong to? The one whose pending ceremony carries this state.
   let demo: DemoSlug | undefined;
@@ -51,7 +50,6 @@ export async function GET(request: NextRequest) {
     });
     ds.tokens = tokens;
     if (requestId) ds.requestId = requestId;
-    if (demo === 'vagn') await issueVagnSession(sid);
     return NextResponse.redirect(`${base}${pending.returnTo}?connected=1`);
   } catch {
     return NextResponse.redirect(`${base}${pending.returnTo}?failed=1`);

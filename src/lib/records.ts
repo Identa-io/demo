@@ -53,6 +53,16 @@ export function maskedAccount(data: Record<string, unknown> | undefined): string
   return [bank, `···· ${tail}`].filter(Boolean).join(' ');
 }
 
+/** "Passport ···· 417 · DE" — a review screen needs recognition, never the whole number. */
+export function maskedDocument(data: Record<string, unknown> | undefined): string {
+  const number = str(data?.documentNumber);
+  if (!number) return '';
+  const type = str(data?.documentType) || 'Document';
+  const country = str(data?.issuingCountry);
+  const tail = number.replace(/\s/g, '').slice(-3);
+  return [`${type} ···· ${tail}`, country].filter(Boolean).join(' · ');
+}
+
 export function taxResidency(data: Record<string, unknown> | undefined): string {
   const country = str(data?.taxResidenceCountry);
   const id = str(data?.taxID);
@@ -80,6 +90,8 @@ export function candidateSummary(
       return addressLines(data).join(', ');
     case 'PersonBankAccount':
       return maskedAccount(data);
+    case 'PersonIdentityDocument':
+      return maskedDocument(data);
     case 'PersonFullName':
       return fullName(data);
     default: {

@@ -2,8 +2,8 @@
 
 import { useDemoBase } from '@/lib/use-geena';
 
-export function VinstHeader() {
-  const base = useDemoBase('vinst');
+export function YieldHeader() {
+  const base = useDemoBase('yield');
   return (
     <header className="border-b border-[color:var(--line)] bg-[color:var(--card)]/70 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -13,9 +13,9 @@ export function VinstHeader() {
             className="flex h-7 w-7 items-center justify-center rounded-md text-[13px] font-bold text-white"
             style={{ background: 'var(--ink)' }}
           >
-            V
+            Y
           </span>
-          <span className="font-display text-[19px] font-semibold tracking-tight">Vinst</span>
+          <span className="font-display text-[19px] font-semibold tracking-tight">Yield</span>
         </a>
         <nav className="flex items-center gap-6 text-[13px] font-medium">
           <a
@@ -30,7 +30,7 @@ export function VinstHeader() {
           >
             Pricing
           </a>
-          <a href={`${base}/register`} className="btn-primary">
+          <a href={`${base}/apply`} className="btn-primary">
             Open an account
           </a>
         </nav>

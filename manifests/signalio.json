@@ -1,55 +1,48 @@
 {
-  "name": "Vagn rental profile",
+  "name": "Signalio subscription",
   "initiation": "BOTH",
   "groups": [
-    { "id": "driver", "label": "Driver", "order": 1 },
-    { "id": "contract", "label": "Rental contract", "order": 2 },
-    { "id": "licence", "label": "Licence", "order": 3 }
+    { "id": "subscriber", "label": "Subscriber", "order": 1 },
+    { "id": "billing", "label": "Billing", "order": 2 }
   ],
   "slots": [
     {
       "label": "Full name",
-      "group": "driver",
+      "group": "subscriber",
       "kind": "SCHEMA",
       "target": "PersonFullName",
       "verbs": ["FILL", "EDIT", "KEEP"]
     },
     {
       "label": "Email",
-      "group": "driver",
+      "group": "subscriber",
       "kind": "SCHEMA",
       "target": "PersonEmail",
       "verbs": ["FILL", "EDIT", "KEEP"]
     },
     {
-      "label": "Phone",
-      "group": "driver",
-      "kind": "SCHEMA",
-      "target": "PersonPhone",
-      "verbs": ["FILL", "EDIT", "KEEP"]
-    },
-    {
-      "label": "Home address",
-      "group": "contract",
+      "label": "Billing address",
+      "group": "billing",
       "kind": "SCHEMA",
       "target": "PersonAddress",
       "verbs": ["FILL", "EDIT", "KEEP"]
     },
     {
-      "label": "Driving licence (scan or photo)",
-      "group": "licence",
-      "kind": "PERSONAL_FILES",
-      "verbs": ["FILL", "KEEP"]
+      "label": "Payment account (SEPA direct debit)",
+      "group": "billing",
+      "kind": "SCHEMA",
+      "target": "PersonBankAccount",
+      "verbs": ["FILL", "EDIT", "KEEP"]
     }
   ],
   "terms": {
     "legalBasis": "CONSENT",
     "purpose": "ONBOARDING",
-    "retentionDays": 90,
+    "retentionDays": 365,
     "retentionAction": "AUTO_DELETE",
     "rightToErasure": true,
     "rightToRectification": true,
     "allowDownload": false,
-    "privacyPolicyUrl": "https://demo.test.geena.eu/vagn/privacy"
+    "privacyPolicyUrl": "https://demo.test.geena.eu/signalio/privacy"
   }
 }

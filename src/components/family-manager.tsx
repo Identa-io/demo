@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { DataSlot } from '@/app/api/data/route';
 import type { StatusSubject, SubjectPersonCandidate } from '@/lib/geena/partner';
-import type { DemoSlug } from '@/lib/demos';
+import { DEMOS, type DemoSlug } from '@/lib/demos';
 import { SlotFiller } from './slot-filler';
 
 /**
@@ -120,8 +120,7 @@ export function FamilyManager({
           </button>
           <p className="w-full text-[10px] leading-relaxed text-[color:var(--muted)]">
             This creates their own vault under your account. The name is your label for it —
-            {` ${demo === 'resa' ? 'Resa' : 'the company'} `}is never sent it; it only ever sees a
-            pairwise reference.
+            {` ${DEMOS[demo].name} `}is never sent it; it only ever sees a pairwise reference.
           </p>
         </div>
       )}

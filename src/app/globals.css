@@ -28,9 +28,9 @@
   --font-body: var(--font-inter);
 }
 
-/* Vinst — fund platform: cool engraved paper, deep green ink, statement rules. Deliberately
+/* Yield — fund platform: cool engraved paper, deep green ink, statement rules. Deliberately
    colder than the warm-cream cliché: this should read annual report, not artisan bakery. */
-[data-demo='vinst'] {
+[data-demo='yield'] {
   --bg: #f8f8f5;
   --ink: #0d211b;
   --muted: #6b7069;
@@ -43,8 +43,8 @@
   --font-body: var(--font-inter);
 }
 
-/* Resa — travel insurance: cool coastal blues, calm and legible. */
-[data-demo='resa'] {
+/* Cover — travel insurance: cool coastal blues, calm and legible. */
+[data-demo='cover'] {
   --bg: #f4f8fa;
   --ink: #0f2a3d;
   --muted: #5e7385;
@@ -58,10 +58,11 @@
   --font-body: var(--font-inter);
 }
 
-/* Vagn — car rental: asphalt ink, signal orange, tight grotesk. */
-[data-demo='vagn'] {
-  --bg: #f4f4f2;
-  --ink: #15171c;
+/* Signalio — market research: editorial ink, signal orange, tight grotesk. Reads terminal,
+   not lifestyle — the product is a chart with an opinion. */
+[data-demo='signalio'] {
+  --bg: #f5f5f7;
+  --ink: #14161d;
   --muted: #6d6f75;
   --card: #ffffff;
   --line: #e3e2dd;
@@ -108,7 +109,7 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* Vinst's signature: financial-statement rules. A section opens on a hairline and a concluding
+/* Yield's signature: financial-statement rules. A section opens on a hairline and a concluding
    figure closes over a double rule, the way audited statements set their totals. */
 .ledger-open {
   border-top: 1.5px solid var(--ink);
@@ -117,8 +118,9 @@ body {
   border-bottom: 3px double var(--ink);
 }
 
-/* Resa's signature: policy-schedule leaders — the dotted line between an item and its amount,
-   exactly as insurance schedules have set them for a century. */
+/* Cover's signature: policy-schedule leaders — the dotted line between an item and its amount,
+   exactly as insurance schedules have set them for a century. (Signalio borrows them for its
+   briefing indices — a data table is a data table.) */
 .leader-row {
   display: flex;
   align-items: baseline;
@@ -130,35 +132,6 @@ body {
   min-width: 1.5rem;
   border-bottom: 1px dotted color-mix(in srgb, var(--ink) 32%, transparent);
   transform: translateY(-0.28em);
-}
-
-/* Vagn's signature: the registration plate — booking references set as counter signage. */
-.plate {
-  display: inline-flex;
-  align-items: stretch;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
-  border-radius: 5px;
-  background: #fff;
-  font-family: var(--font-jbmono), ui-monospace, monospace;
-  line-height: 1;
-}
-.plate-band {
-  display: flex;
-  align-items: center;
-  padding: 0 0.32rem;
-  background: #2b4c9b;
-  color: #fff;
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-}
-.plate-no {
-  padding: 0.32rem 0.5rem;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  color: var(--ink);
 }
 
 /* Shared surfaces — one card language across the brands, tinted by their tokens. */

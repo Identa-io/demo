@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { DemoSlug } from './demos';
+import { DEMO_SLUGS, type DemoSlug } from './demos';
 import type { DataResponse } from '@/app/api/data/route';
 
 /**
@@ -52,6 +52,36 @@ export function useDemoBase(demo: DemoSlug): string {
     setBase(sub === demo ? '' : `/${demo}`);
   }, [demo]);
   return base;
+}
+
+/**
+ * The journey hub's URL from wherever we are: on a demo subdomain the hub is the parent host
+ * (yield.demo.test.geena.eu -> demo.test.geena.eu); in path mode it is simply '/'.
+ */
+export function useHubHref(): string {
+  const [href, setHref] = useState('/');
+  useEffect(() => {
+    const { protocol, host } = window.location;
+    const [sub, ...rest] = host.split('.');
+    // Only strip a DEMO subdomain — demo.test.geena.eu itself must stay the hub.
+    if (rest.length && (DEMO_SLUGS as string[]).includes(sub)) {
+      setHref(`${protocol}//${rest.join('.')}/`);
+    } else {
+      setHref('/');
+    }
+  }, []);
+  return href;
+}
+
+/**
+ * A chapter-finish CTA: route through the hub so progress lands in the hub-origin cookie
+ * (the middleware records `done` and forwards to `next` — or renders the hub, ticks updated).
+ */
+export function useJourneyAdvanceHref(demo: DemoSlug, next?: DemoSlug): string {
+  const hub = useHubHref();
+  const params = new URLSearchParams({ done: demo });
+  if (next) params.set('next', next);
+  return `${hub === '/' ? '' : hub.replace(/\/$/, '')}/?${params.toString()}`;
 }
 
 /** The connect hop entry — a plain navigation, the server does the rest. */

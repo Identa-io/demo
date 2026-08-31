@@ -4,7 +4,7 @@ import { getSlotFile } from '@/lib/geena/partner';
 import { demoSession, getSession } from '@/lib/session';
 
 /**
- * Authenticated file proxy: granted file content (Vagn's licence documents) streams through the
+ * Authenticated file proxy: granted file content (Cover's policy documents) streams through the
  * coordinator because the Bearer token never reaches the browser. Every byte served here wrote
  * a receipt on the person's side.
  */

@@ -2,8 +2,8 @@ import type { DemoSlug } from './demos';
 
 /**
  * Runtime configuration. Per demo: the OAuth client credentials and the published manifest id.
- * Only the client secrets (and Vagn's session secret) are secrets — manifest ids travel in
- * browser-visible authorize URLs, and the client id is the app's public slug.
+ * Only the client secrets are secrets — manifest ids travel in browser-visible authorize URLs,
+ * and the client id is the app's public slug.
  */
 
 export function geenaApiUrl(): string {
@@ -21,9 +21,9 @@ export interface DemoCredentials {
 }
 
 const ENV_PREFIX: Record<DemoSlug, string> = {
-  vinst: 'VINST',
-  resa: 'RESA',
-  vagn: 'VAGN',
+  yield: 'YIELD',
+  signalio: 'SIGNALIO',
+  cover: 'COVER',
 };
 
 export function demoCredentials(demo: DemoSlug): DemoCredentials {
@@ -37,8 +37,4 @@ export function demoCredentials(demo: DemoSlug): DemoCredentials {
     );
   }
   return { clientId, clientSecret, manifestId };
-}
-
-export function vagnSessionSecret(): string {
-  return process.env.VAGN_SESSION_SECRET ?? 'change-me';
 }

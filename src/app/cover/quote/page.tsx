@@ -5,30 +5,23 @@ import { GeenaButton } from '@/components/geena-button';
 import { StateNotice } from '@/components/demo-chrome';
 import { FamilyManager } from '@/components/family-manager';
 import { PendingFills } from '@/components/pending-fills';
-import { ageFrom, docData, familyFromSlots, fullName } from '@/lib/records';
-import { useGeena } from '@/lib/use-geena';
-
-const DESTINATIONS = ['Europe', 'Worldwide excl. US/Canada', 'Worldwide'] as const;
-const ADULT_PER_DAY = 4.2;
-const CHILD_PER_DAY = 2.1;
-const DESTINATION_FACTOR: Record<(typeof DESTINATIONS)[number], number> = {
-  Europe: 1,
-  'Worldwide excl. US/Canada': 1.4,
-  Worldwide: 1.9,
-};
+import { SlotFiller } from '@/components/slot-filler';
+import { ageFrom, docData, familyFromSlots, fullName, slotByKind } from '@/lib/records';
+import { useDemoBase, useGeena } from '@/lib/use-geena';
+import { DESTINATIONS, tripPrice, type Destination } from '../pricing';
 
 /**
- * Resa — the family demo. Trip details are ordinary form fields (they are not personal data on
- * file anywhere). The TRAVELLERS are the point: the quote never asks how many children you have.
- * You connect, bind whichever children you're covering in your Geena, and each appears as a
- * priced line — two of three is a fine answer, and the insurer never learns a third exists.
+ * Cover — screen 2 of 3, the form stage. Trip details are ordinary form fields (they are not
+ * personal data on file anywhere). Everything else demonstrates the chapter: the policyholder
+ * flows in from the vault (the prefill intersection), the TRAVELLERS are chosen child by child
+ * (subjects, priced per person), and the switching discount hangs off a file slot.
  */
-export default function ResaQuote() {
-  const { data, refresh } = useGeena('resa');
+export default function CoverQuote() {
+  const base = useDemoBase('cover');
+  const { data, refresh } = useGeena('cover');
   const [denied, setDenied] = useState(false);
-  const [destination, setDestination] = useState<(typeof DESTINATIONS)[number]>('Europe');
+  const [destination, setDestination] = useState<Destination>('Europe');
   const [days, setDays] = useState(7);
-  const [issued, setIssued] = useState(false);
 
   useEffect(() => {
     setDenied(new URLSearchParams(window.location.search).has('denied'));
@@ -41,41 +34,42 @@ export default function ResaQuote() {
   const holderBirth = String(docData(slots, 'PersonBirthDetails')?.dateOfBirth ?? '');
   const children = familyFromSlots(slots);
 
+  const fileSlot = slotByKind(slots, 'PERSONAL_FILES');
+  const sharedPolicy = fileSlot?.records?.find((record) => record.type === 'file');
+  const switching = !!sharedPolicy;
+
   const connected = data?.connected ?? false;
+  const managing = connected && !data?.accessEnded;
   const hasTravellers = !!holderName;
 
-  const price = useMemo(() => {
-    const factor = DESTINATION_FACTOR[destination];
-    const adult = ADULT_PER_DAY * days * factor;
-    const perChild = CHILD_PER_DAY * days * factor;
-    return {
-      adult: Math.round(adult * 100) / 100,
-      perChild: Math.round(perChild * 100) / 100,
-      total: Math.round((adult + perChild * children.length) * 100) / 100,
-    };
-  }, [destination, days, children.length]);
+  const price = useMemo(
+    () => tripPrice({ destination, days, childCount: children.length, switching }),
+    [destination, days, children.length, switching],
+  );
+
+  const doneHref = `${base}/done?destination=${encodeURIComponent(destination)}&days=${days}`;
 
   return (
     <main className="mx-auto max-w-6xl px-6">
       <section className="grid items-start gap-10 py-12 lg:grid-cols-[1.1fr_1fr]">
         <div>
-          <p className="eyebrow">Single-trip cover</p>
-          <h1 className="font-display mt-3 max-w-xl text-[40px] font-bold leading-[1.08] tracking-tight">
-            The whole family, covered in one sitting.
+          <p className="eyebrow">Your quote</p>
+          <h1 className="font-display mt-3 max-w-xl text-[34px] font-bold leading-[1.08] tracking-tight">
+            One trip, the whole family.
           </h1>
-          <p className="mt-4 max-w-md text-[15px] leading-relaxed text-[color:var(--muted)]">
-            No &quot;traveller 2, date of birth&quot; forms. Your children live in your vault — you
-            decide which of them this policy covers, and that is all Resa ever learns.
+          <p className="mt-3 max-w-md text-[14px] leading-relaxed text-[color:var(--muted)]">
+            Your half of this form no longer exists — it flowed in from your vault. The children
+            are the only thing Cover still has to ask about.
           </p>
 
-          <div className="card mt-8 p-5">
+          <div className="card mt-7 p-5">
             <h2 className="text-[13px] font-semibold">Trip</h2>
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
               <label>
                 <span className="field-label">Destination</span>
                 <select
                   value={destination}
-                  onChange={(e) => setDestination(e.target.value as (typeof DESTINATIONS)[number])}
+                  onChange={(e) => setDestination(e.target.value as Destination)}
                   className="mt-1 w-full rounded-lg border border-[color:var(--line)] bg-white px-3 py-2 text-[14px]"
                 >
                   {DESTINATIONS.map((d) => (
@@ -106,7 +100,7 @@ export default function ResaQuote() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-[13px] font-semibold">Travellers</h2>
               {!connected || data?.accessEnded ? (
-                <GeenaButton demo="resa" returnTo="/" label="Add travellers from Geena" />
+                <GeenaButton demo="cover" returnTo="/quote" label="Connect with Geena" />
               ) : (
                 <span className="text-[11px] text-[color:var(--muted)]">
                   from your vault — you chose exactly who
@@ -131,28 +125,28 @@ export default function ResaQuote() {
             {data?.accessEnded && (
               <div className="mt-3">
                 <StateNotice tone="ended">
-                  Access ended — you revoked Resa in your Geena. The traveller list is gone from
-                  Resa&apos;s side, entirely.
+                  Access ended — you revoked Cover in your Geena. The traveller list is gone from
+                  Cover&apos;s side, entirely.
                 </StateNotice>
               </div>
             )}
 
-            {connected && !data?.accessEnded && !hasTravellers && (
+            {managing && !hasTravellers && (
               <div className="mt-3">
                 <StateNotice tone="info">
-                  You&apos;re connected — add your details and travellers right below, without
-                  leaving this page. Covering two of three kids? Share exactly those two.
+                  You&apos;re connected — your own details resolve right below (watch them arrive
+                  without typing), then add the children you&apos;re covering.
                 </StateNotice>
               </div>
             )}
 
-            {connected && !data?.accessEnded && (
+            {managing && (
               <div className="mt-4">
                 <PendingFills
-                  demo="resa"
+                  demo="cover"
                   slots={data?.slots}
                   onChanged={() => void refresh()}
-                  title="Your details"
+                  title="Policyholder"
                 />
               </div>
             )}
@@ -181,7 +175,7 @@ export default function ResaQuote() {
                         </p>
                         <p
                           className="truncate text-[11px] text-[color:var(--muted)]"
-                          title="The pairwise reference Resa holds instead of an identity — stable for this policy, meaningless anywhere else. Two insurers could never match it."
+                          title="The pairwise reference Cover holds instead of an identity — stable for this policy, meaningless anywhere else. Two insurers could never match it."
                         >
                           Child{age != null ? ` · ${age} y` : ''} ·{' '}
                           <span className="vault-value">ref {child.alias.slice(0, 8)}</span>
@@ -197,12 +191,12 @@ export default function ResaQuote() {
               </ul>
             )}
 
-            {connected && !data?.accessEnded && childSubject && (
+            {managing && childSubject && (
               <div className="mt-4 border-t border-[color:var(--line)] pt-4">
                 <p className="field-label">{childSubject.label ?? 'Travelling children'}</p>
                 <div className="mt-2">
                   <FamilyManager
-                    demo="resa"
+                    demo="cover"
                     subject={childSubject}
                     slots={childSlots}
                     onChanged={() => void refresh()}
@@ -211,6 +205,42 @@ export default function ResaQuote() {
               </div>
             )}
           </div>
+
+          {managing && fileSlot && (
+            <div className="card mt-4 p-5">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="text-[13px] font-semibold">Switching from another insurer?</h2>
+                <span
+                  className="tabular rounded-md px-2 py-0.5 text-[11px] font-bold"
+                  style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}
+                >
+                  −10%
+                </span>
+              </div>
+              {switching ? (
+                <p className="mt-2 text-[12.5px] leading-relaxed">
+                  <span className="vault-value">{sharedPolicy?.fileName ?? 'Your policy'}</span>{' '}
+                  <span className="text-[color:var(--muted)]">
+                    is shared — the discount is on. A file is a data point like any other:
+                    consented, receipted, revocable.
+                  </span>
+                </p>
+              ) : (
+                <div className="mt-3">
+                  <SlotFiller
+                    bare
+                    demo="cover"
+                    slot={fileSlot}
+                    onFilled={() => void refresh()}
+                  />
+                  <p className="mt-2 text-[10px] leading-relaxed text-[color:var(--muted)]">
+                    Optional — upload your current policy (or pick it from your vault) and we take
+                    10% off the total.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-6">
@@ -230,6 +260,7 @@ export default function ResaQuote() {
             <p className="text-[11px] text-[color:var(--muted)]">
               €{price.adult.toFixed(2)} adult
               {children.length > 0 && ` + ${children.length} × €${price.perChild.toFixed(2)} child`}
+              {switching && ` − €${price.discount.toFixed(2)} switching`}
             </p>
 
             {/* Schedule of cover, set with leaders — the way policy schedules have always read. */}
@@ -248,46 +279,34 @@ export default function ResaQuote() {
               ))}
             </div>
 
-            {issued ? (
-              <div
-                className="mt-5 rounded-xl p-4 text-[13px] leading-relaxed"
-                style={{ background: 'var(--accent-soft)' }}
-              >
-                <p className="font-semibold">Policy RES-2026-08471 issued (simulated).</p>
-                <p className="mt-1 text-[color:var(--muted)]">
-                  {1 + children.length} traveller{children.length ? 's' : ''} covered, {destination}
-                  , {days} days. Documents by email — in a real Resa, anyway.
-                </p>
-              </div>
-            ) : (
-              <button
-                onClick={() => setIssued(true)}
-                disabled={!hasTravellers}
-                className="btn-primary mt-5 w-full !py-3 !text-[14px]"
-                style={{ background: 'var(--accent)' }}
-              >
-                {hasTravellers ? 'Buy policy (simulated)' : 'Add travellers first'}
-              </button>
-            )}
+            <a
+              href={hasTravellers ? doneHref : undefined}
+              aria-disabled={!hasTravellers}
+              className={`btn-primary mt-5 w-full !py-3 !text-[14px] ${
+                hasTravellers ? '' : 'pointer-events-none opacity-40'
+              }`}
+              style={{ background: 'var(--accent)' }}
+            >
+              {hasTravellers ? 'Buy policy (simulated) →' : 'Add travellers first'}
+            </a>
             <p className="mt-3 text-[10px] leading-relaxed text-[color:var(--muted)]">
-              Illustrative cover and pricing. Resa is fictional; no policy exists and no payment
+              Illustrative cover and pricing. Cover is fictional; no policy exists and no payment
               happens.
             </p>
           </div>
 
-          {connected && !data?.accessEnded && (
+          {managing && (
             <p className="text-center text-[11px] text-[color:var(--muted)]">
               <button
                 onClick={async () => {
-                  await fetch('/api/revoke?demo=resa', { method: 'POST' });
-                  setIssued(false);
+                  await fetch('/api/revoke?demo=cover', { method: 'POST' });
                   void refresh();
                 }}
                 className="underline underline-offset-2 hover:opacity-70"
               >
                 Disconnect Geena
               </button>{' '}
-              — the traveller list disappears from Resa&apos;s side.
+              — the traveller list disappears from Cover&apos;s side.
             </p>
           )}
         </aside>

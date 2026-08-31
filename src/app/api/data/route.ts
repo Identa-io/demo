@@ -8,7 +8,6 @@ import {
   type StatusGroup,
   type StatusSubject,
 } from '@/lib/geena/partner';
-import { verifyVagnSession } from '@/lib/vagn-auth';
 import { demoSession, getSession } from '@/lib/session';
 
 /**
@@ -39,7 +38,6 @@ export interface DataResponse {
   configured: boolean;
   configureHint?: string;
   connected: boolean;
-  vagnAuthed?: boolean;
   state?: string;
   requestId?: string;
   /** Deep link to the person's own grant screen on the Geena dashboard. */
@@ -47,7 +45,6 @@ export interface DataResponse {
   groups?: StatusGroup[];
   subjects?: StatusSubject[];
   slots?: DataSlot[];
-  bookings?: string[];
   /** Set when the connection stopped serving (revoked/expired) — the "access ended" state. */
   accessEnded?: boolean;
 }
@@ -69,12 +66,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(body);
   }
 
-  const { sid, session } = await getSession();
+  const { session } = await getSession();
   const ds = demoSession(session, demo);
-  const vagnAuthed = demo === 'vagn' ? await verifyVagnSession(sid) : undefined;
 
   if (!ds.tokens || !ds.requestId) {
-    const body: DataResponse = { configured: true, connected: false, vagnAuthed };
+    const body: DataResponse = { configured: true, connected: false };
     return NextResponse.json(body);
   }
 
@@ -95,7 +91,6 @@ export async function GET(request: NextRequest) {
     const body: DataResponse = {
       configured: true,
       connected: true,
-      vagnAuthed,
       state: status.state,
       requestId: ds.requestId,
       grantUrl: `${geenaDashboardUrl()}/personal/connections/${ds.requestId}`,
@@ -123,20 +118,17 @@ export async function GET(request: NextRequest) {
             : record,
         ),
       })),
-      bookings: demo === 'vagn' ? ds.bookings : undefined,
       accessEnded: status.state !== 'active' && status.state !== 'pending',
     };
     return NextResponse.json(body);
   } catch {
     // Serving refused mid-connection: revoked, expired, or the request is gone. Honest state,
-    // not a 500 — this is Vagn's finale working as designed.
+    // not a 500 — revocation ending access IS the epilogue working as designed.
     const body: DataResponse = {
       configured: true,
       connected: true,
-      vagnAuthed,
       requestId: ds.requestId,
       accessEnded: true,
-      bookings: demo === 'vagn' ? ds.bookings : undefined,
     };
     return NextResponse.json(body);
   }

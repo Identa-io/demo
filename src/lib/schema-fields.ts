@@ -13,15 +13,18 @@ export interface SchemaField {
   options?: { value: string; label: string }[];
 }
 
-/** The demo's market: Nordics + nearby. Values are ISO codes — what the schema stores. */
+/** The demo's market: the EU, no home bias. Values are ISO codes — what the schema stores. */
 const COUNTRIES: { value: string; label: string }[] = [
-  { value: 'SE', label: 'Sweden' },
-  { value: 'DK', label: 'Denmark' },
-  { value: 'NO', label: 'Norway' },
-  { value: 'FI', label: 'Finland' },
   { value: 'DE', label: 'Germany' },
+  { value: 'FR', label: 'France' },
+  { value: 'ES', label: 'Spain' },
+  { value: 'IT', label: 'Italy' },
   { value: 'NL', label: 'Netherlands' },
   { value: 'PL', label: 'Poland' },
+  { value: 'IE', label: 'Ireland' },
+  { value: 'PT', label: 'Portugal' },
+  { value: 'SE', label: 'Sweden' },
+  { value: 'AT', label: 'Austria' },
 ];
 
 export const SCHEMA_FIELDS: Record<string, SchemaField[]> = {
@@ -30,7 +33,21 @@ export const SCHEMA_FIELDS: Record<string, SchemaField[]> = {
     { key: 'lastName', label: 'Last name' },
   ],
   PersonEmail: [{ key: 'email', label: 'Email', type: 'email' }],
-  PersonPhone: [{ key: 'telephone', label: 'Phone', type: 'tel', placeholder: '+46 …' }],
+  PersonPhone: [{ key: 'telephone', label: 'Phone', type: 'tel', placeholder: '+…' }],
+  PersonIdentityDocument: [
+    {
+      key: 'documentType',
+      label: 'Document type',
+      options: [
+        { value: 'Passport', label: 'Passport' },
+        { value: 'National ID Card', label: 'National ID card' },
+        { value: 'Residence Permit', label: 'Residence permit' },
+      ],
+    },
+    { key: 'documentNumber', label: 'Document number' },
+    { key: 'issuingCountry', label: 'Issuing country', options: COUNTRIES },
+    { key: 'expiryDate', label: 'Expiry date', type: 'date' },
+  ],
   PersonAddress: [
     { key: 'streetAddress', label: 'Street address' },
     { key: 'postalCode', label: 'Postal code' },
@@ -79,6 +96,7 @@ export const SINGLETON_TARGETS = new Set([
 export const LABEL_OPTIONS: Record<string, string[]> = {
   PersonEmail: ['Personal', 'Work'],
   PersonPhone: ['Mobile', 'Work', 'Home'],
-  PersonAddress: ['Home', 'Work', 'Summer house'],
+  PersonAddress: ['Home', 'Work', 'Second home'],
   PersonBankAccount: ['Main account', 'Savings', 'Joint'],
+  PersonIdentityDocument: ['Passport', 'National ID'],
 };

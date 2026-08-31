@@ -9,22 +9,22 @@ import {
   docData,
   fullName,
   maskedAccount,
+  maskedDocument,
   slotByTarget,
   taxResidency,
 } from '@/lib/records';
-import { useGeena } from '@/lib/use-geena';
+import { useDemoBase, useGeena } from '@/lib/use-geena';
 
 /**
- * The account surface — the flagship flow, and deliberately NOT a one-shot application. The
- * statement lists the KYC-grade data Vinst holds (identity, contact, residential address,
- * payout account, tax residency); every row is live: an empty row carries its fill control in
- * place, a filled row opens into an update form that writes the change into the vault through
- * the delegated-write path — so a moved house or a new payout account is corrected HERE and the
- * organization reads the current version. Account numbers and tax identifiers render masked —
- * recognition, not exposure, is what a review screen needs.
+ * Yield — screen 2 of 3, the form stage. Deliberately the LONGEST form of the journey: this is
+ * the "type it once" chapter, and every keystroke lands in the visitor's vault, not in Yield's
+ * database. The application reads like a statement: every row is live — an empty row carries its
+ * fill control in place, a filled row opens into an update that writes the change back into the
+ * vault through the delegated-write path. Identifiers render masked — recognition, not exposure.
  */
-export default function VinstAccount() {
-  const { data, refresh } = useGeena('vinst');
+export default function YieldApply() {
+  const base = useDemoBase('yield');
+  const { data, refresh } = useGeena('yield');
   const [denied, setDenied] = useState(false);
   const [openTarget, setOpenTarget] = useState<string | null>(null);
 
@@ -34,6 +34,8 @@ export default function VinstAccount() {
 
   const slots = data?.slots;
   const name = fullName(docData(slots, 'PersonFullName'));
+  const birth = String(docData(slots, 'PersonBirthDetails')?.dateOfBirth ?? '');
+  const idDoc = maskedDocument(docData(slots, 'PersonIdentityDocument'));
   const email = String(docData(slots, 'PersonEmail')?.email ?? '');
   const phone = String(docData(slots, 'PersonPhone')?.telephone ?? '');
   const address = addressLines(docData(slots, 'PersonAddress'));
@@ -51,6 +53,8 @@ export default function VinstAccount() {
       title: 'Identity',
       rows: [
         { label: 'Full name', target: 'PersonFullName', value: name },
+        { label: 'Date of birth', target: 'PersonBirthDetails', value: birth },
+        { label: 'Identity document', target: 'PersonIdentityDocument', value: idDoc },
         { label: 'Email', target: 'PersonEmail', value: email },
         { label: 'Phone', target: 'PersonPhone', value: phone },
       ],
@@ -61,7 +65,7 @@ export default function VinstAccount() {
     },
     {
       title: 'Payout account',
-      rows: [{ label: 'Bank account', target: 'PersonBankAccount', value: payout }],
+      rows: [{ label: 'IBAN', target: 'PersonBankAccount', value: payout }],
     },
     {
       title: 'Tax residency',
@@ -69,22 +73,23 @@ export default function VinstAccount() {
     },
   ];
 
-  const completedSections = sections.filter((section) =>
-    section.rows.some((row) => row.value),
-  ).length;
+  const allRows = sections.flatMap((section) => section.rows);
+  const providedRows = allRows.filter((row) => row.value).length;
+  const complete = managing && providedRows === allRows.length;
 
   let fieldIndex = 0;
 
   return (
     <main className="mx-auto grid max-w-6xl gap-10 px-6 py-10 lg:grid-cols-[1fr_19rem]">
       <section>
-        <p className="eyebrow">Vinst account</p>
+        <p className="eyebrow">Account application</p>
         <h1 className="font-display mt-2 text-3xl font-semibold tracking-tight">
-          {name ? name : 'Your account data'}
+          {name ? name : 'Open your account'}
         </h1>
         <p className="mt-2 max-w-lg text-[13px] leading-relaxed text-[color:var(--muted)]">
           Regulation says we must hold current data on who you are, where you pay tax, and where
-          withdrawals go. It does not say you have to retype it when life changes.
+          withdrawals go. It does not say you have to retype it when life changes — or ever again,
+          anywhere.
         </p>
 
         <div className="mt-6 space-y-4">
@@ -92,14 +97,14 @@ export default function VinstAccount() {
 
           {denied && !connected && (
             <StateNotice tone="denied">
-              Nothing was shared — the account stays empty until you decide otherwise.
+              Nothing was shared — the application stays empty until you decide otherwise.
             </StateNotice>
           )}
 
           {data?.accessEnded && (
             <StateNotice tone="ended">
-              Access ended: you revoked Vinst in your Geena, so this account can no longer read
-              anything. Reconnect to continue — nothing survived on Vinst&apos;s side.
+              Access ended: you revoked Yield in your Geena, so this application can no longer read
+              anything. Reconnect to continue — nothing survived on Yield&apos;s side.
             </StateNotice>
           )}
 
@@ -111,14 +116,14 @@ export default function VinstAccount() {
                   One hop, one consent screen — on Geena&apos;s page, never ours.
                 </p>
               </div>
-              <GeenaButton demo="vinst" returnTo="/register" label="Continue with Geena" />
+              <GeenaButton demo="yield" returnTo="/apply" label="Connect with Geena" />
             </div>
           )}
 
           {managing && (
             <>
-              {/* Set like a statement: each section opens on a rule, the account closes over a
-                  double rule, the way audited documents mark their totals. Every row is live —
+              {/* Set like a statement: each section opens on a rule, the application closes over
+                  a double rule, the way audited documents mark their totals. Every row is live —
                   empty rows fill in place, filled rows open into an update. */}
               <div className="space-y-7 pt-2">
                 {sections.map((section, sectionIndex) => (
@@ -158,7 +163,7 @@ export default function VinstAccount() {
                               <div className="mt-1 rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-2.5">
                                 <SlotFiller
                                   bare
-                                  demo="vinst"
+                                  demo="yield"
                                   slot={slot}
                                   onFilled={() => void refresh()}
                                 />
@@ -178,7 +183,7 @@ export default function VinstAccount() {
                                   <div className="mt-2 rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-2.5">
                                     <SlotFiller
                                       bare
-                                      demo="vinst"
+                                      demo="yield"
                                       slot={slot}
                                       current={(record.data ?? {}) as Record<string, unknown>}
                                       onFilled={() => {
@@ -198,18 +203,28 @@ export default function VinstAccount() {
                 ))}
 
                 <div className="ledger-close flex items-baseline justify-between pb-2.5 pt-1">
-                  <span className="text-[13px] font-semibold">Account data</span>
+                  <span className="text-[13px] font-semibold">Application</span>
                   <span className="vault-value text-[12px]">
-                    {completedSections} / {sections.length} sections live
+                    {providedRows} / {allRows.length} provided
                   </span>
                 </div>
               </div>
 
-              <p className="text-[11px] leading-relaxed text-[color:var(--muted)]">
-                Every value above is read live from your vault. Update it here or in Geena — either
-                way, Vinst sees the current version on its next read, and every read is receipted on
-                your side.
-              </p>
+              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="max-w-sm text-[11px] leading-relaxed text-[color:var(--muted)]">
+                  Every value above is read live from your vault. Update it here or in Geena —
+                  either way, Yield sees the current version on its next read.
+                </p>
+                <a
+                  href={complete ? `${base}/done` : undefined}
+                  aria-disabled={!complete}
+                  className={`btn-primary shrink-0 !px-6 !py-3 !text-[14px] ${
+                    complete ? '' : 'pointer-events-none opacity-40'
+                  }`}
+                >
+                  {complete ? 'Open my account →' : `Provide ${allRows.length - providedRows} more`}
+                </a>
+              </div>
             </>
           )}
 
@@ -218,14 +233,14 @@ export default function VinstAccount() {
               Changed your mind?{' '}
               <button
                 onClick={async () => {
-                  await fetch('/api/revoke?demo=vinst', { method: 'POST' });
+                  await fetch('/api/revoke?demo=yield', { method: 'POST' });
                   void refresh();
                 }}
                 className="underline underline-offset-2 hover:opacity-70"
               >
                 Disconnect Geena
               </button>{' '}
-              — Vinst keeps nothing.
+              — Yield keeps nothing.
             </p>
           )}
         </div>
@@ -238,15 +253,15 @@ export default function VinstAccount() {
             {[
               [
                 'Connect',
-                'One hop to Geena — sign in or sign up there. Vinst never sees a password or a code.',
+                'One hop to Geena — sign in or sign up there. Yield never sees a password or a code.',
               ],
               [
-                'Consent',
-                'One screen lists exactly what Vinst asks for, and why. You choose item by item.',
+                'Fill once',
+                'Every field you type here is written into YOUR vault and shared in the same act — the last time you ever type it.',
               ],
               [
-                'Manage',
-                'The account fills itself and stays current: update any value in place, and Vinst reads the new version.',
+                'Stay current',
+                'Update any value in place, and Yield reads the new version. So will chapters 2 and 3 — without asking you to type at all.',
               ],
             ].map(([title, text], index) => (
               <li key={title} className="flex gap-3">
@@ -267,9 +282,9 @@ export default function VinstAccount() {
         <div className="card p-5">
           <p className="eyebrow">Why we ask</p>
           <p className="mt-2 text-[12px] leading-relaxed text-[color:var(--muted)]">
-            Identity and tax residency are required under KYC/AML rules; the payout account is where
-            withdrawals go. The consent screen states the legal basis and the retention period — the
-            same facts, shown to you before anything moves.
+            Identity, an ID document and tax residency are required under EU KYC/AML rules; the
+            IBAN is where withdrawals go. The consent screen states the legal basis and the
+            retention period — the same facts, shown to you before anything moves.
           </p>
         </div>
       </aside>
