@@ -1,61 +1,72 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { BulkSlotFields } from '@/components/bulk-fill-fields';
 import { GeenaButton } from '@/components/geena-button';
 import { StateNotice } from '@/components/demo-chrome';
-import { SlotFiller } from '@/components/slot-filler';
-import { addressLines, docData, fullName, maskedAccount, slotByTarget } from '@/lib/records';
+import { slotByTarget } from '@/lib/records';
+import { useBulkFill } from '@/lib/use-bulk-fill';
 import { useDemoBase, useGeena } from '@/lib/use-geena';
 
+const TARGETS = [
+  { label: 'Name', target: 'PersonFullName' },
+  { label: 'Email', target: 'PersonEmail' },
+  { label: 'Billing address', target: 'PersonAddress' },
+  { label: 'SEPA account', target: 'PersonBankAccount' },
+];
+
 /**
- * Signalio — screen 2 of 3, the form stage. The chapter's entire point is what this form is
- * NOT: there is nothing to type. Every ask resolves from the vault — singleton forms arrive
- * prefilled ("Confirm & share"), instances are a one-tap pick. The counter keeps the score
- * honest: fields typed stays at zero.
+ * Signalio — screen 2 of 3, the form stage. The chapter's entire point is what this page is
+ * NOT: the four asks arrive prefilled from the vault (chips propose reuse when there is a
+ * choice), and ONE act — "Start my subscription" — pushes them all and starts the product.
+ * Nothing to type, nothing to confirm per data point.
  */
 export default function SignalioCheckout() {
   const base = useDemoBase('signalio');
   const { data, refresh } = useGeena('signalio');
   const [denied, setDenied] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     setDenied(new URLSearchParams(window.location.search).has('denied'));
   }, []);
 
   const slots = data?.slots;
-  const rows: { label: string; target: string; value: string }[] = [
-    { label: 'Name', target: 'PersonFullName', value: fullName(docData(slots, 'PersonFullName')) },
-    { label: 'Email', target: 'PersonEmail', value: String(docData(slots, 'PersonEmail')?.email ?? '') },
-    {
-      label: 'Billing address',
-      target: 'PersonAddress',
-      value: addressLines(docData(slots, 'PersonAddress')).join(' · '),
-    },
-    {
-      label: 'SEPA account',
-      target: 'PersonBankAccount',
-      value: maskedAccount(docData(slots, 'PersonBankAccount')),
-    },
-  ];
-
   const connected = data?.connected ?? false;
   const managing = connected && !data?.accessEnded;
-  const provided = rows.filter((row) => row.value).length;
-  const complete = managing && provided === rows.length;
+
+  const form = useBulkFill('signalio', managing ? slots : undefined);
+
+  const rows = TARGETS.map((row) => ({ ...row, slot: slotByTarget(slots, row.target) }));
+  const present = rows.filter((row) => !!row.slot);
+  const readyCount = present.filter((row) => form.slotReady(row.slot!)).length;
+  const completeCount = present.filter(
+    (row) => form.slotReady(row.slot!) && form.slotComplete(row.slot!),
+  ).length;
+  const loading = managing && (present.length === 0 || readyCount < present.length);
+  const complete = managing && !loading && completeCount === present.length;
+  const failedCount = Object.keys(form.errors).length;
+
+  const submit = async () => {
+    setSubmitting(true);
+    const ok = await form.submitAll();
+    if (ok) {
+      window.location.href = `${base}/done`;
+      return;
+    }
+    setSubmitting(false);
+    void refresh();
+  };
 
   return (
     <main className="mx-auto grid max-w-6xl gap-10 px-6 py-10 lg:grid-cols-[1.1fr_1fr]">
       <section>
         <p className="eyebrow">Checkout</p>
-        <h1 className="font-display mt-2 text-3xl font-bold tracking-tight">
+        <h1 className="font-display mt-2 text-[30px] font-bold tracking-tight">
           Start your subscription.
         </h1>
-        <p className="mt-2 max-w-lg text-[13px] leading-relaxed text-[color:var(--muted)]">
-          Four data points, all of them already in your vault. Notice what you are{' '}
-          <em>not</em> doing on this page.
-        </p>
 
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 flex flex-col gap-4">
           {data && !data.configured && <StateNotice tone="info">{data.configureHint}</StateNotice>}
 
           {denied && !connected && (
@@ -88,65 +99,36 @@ export default function SignalioCheckout() {
               <div className="flex items-baseline justify-between">
                 <h2 className="text-[13px] font-semibold">Subscriber details</h2>
                 <span className="vault-value text-[10px] text-[color:var(--muted)]">
-                  {provided} / {rows.length} from your vault
+                  {loading ? 'reading your vault…' : `${completeCount} / ${present.length} from your vault`}
                 </span>
               </div>
-              <div className="mt-3 space-y-3">
-                {rows.map((row) => {
-                  const slot = slotByTarget(slots, row.target);
-                  const pendingFill = !!slot && slot.status === 'pending';
-                  return (
-                    <div key={row.label}>
-                      <p className="field-label">{row.label}</p>
-                      {pendingFill ? (
-                        <div className="mt-1 rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-2.5">
-                          <SlotFiller
-                            bare
-                            demo="signalio"
-                            slot={slot}
-                            onFilled={() => void refresh()}
-                          />
-                        </div>
-                      ) : (
-                        <div
-                          key={row.value || 'empty'}
-                          className={`mt-1 min-h-10 rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-2.5 text-[13.5px] ${
-                            row.value ? 'fill-in vault-value' : 'text-[color:var(--muted)]'
-                          }`}
-                        >
-                          {row.value || 'Waiting for your vault'}
-                        </div>
-                      )}
+              <div className="mt-3 flex flex-col gap-3">
+                {present.map(({ label, slot }) => (
+                  <div key={slot!.slotId}>
+                    <p className="field-label">{label}</p>
+                    <div className="mt-1">
+                      <BulkSlotFields slot={slot!} form={form} />
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
               <p className="mt-3 text-[10px] leading-relaxed text-[color:var(--muted)]">
-                A pick or a confirm is a consented, receipted act — not typing. If a value looks
-                stale, correct it once; every connection you have reads the new version.
+                Everything above came from your vault — correct it once here, and every connection
+                you have reads the new version.
               </p>
             </div>
           )}
 
-          {managing && (
-            <p className="text-center text-[11px] text-[color:var(--muted)]">
-              Changed your mind?{' '}
-              <button
-                onClick={async () => {
-                  await fetch('/api/revoke?demo=signalio', { method: 'POST' });
-                  void refresh();
-                }}
-                className="underline underline-offset-2 hover:opacity-70"
-              >
-                Disconnect Geena
-              </button>{' '}
-              — Signalio keeps nothing.
-            </p>
+          {failedCount > 0 && (
+            <StateNotice tone="denied">
+              {failedCount} of {present.length} data points did not land — the details are under
+              the fields. Fix and start again; what already landed stays shared.
+            </StateNotice>
           )}
         </div>
       </section>
 
-      <aside className="space-y-4 lg:sticky lg:top-6 h-fit">
+      <aside className="sticky top-6 flex h-fit flex-col gap-4 lg:mt-[85px]">
         <div className="card p-6">
           <p className="eyebrow">Your order</p>
           <div className="mt-3 flex items-baseline justify-between">
@@ -156,41 +138,31 @@ export default function SignalioCheckout() {
           <p className="mt-1 text-[12px] text-[color:var(--muted)]">
             The Morning Signal, weekdays 07:00 · SEPA direct debit · cancel anytime
           </p>
-          <div className="mt-5 space-y-2 border-t border-[color:var(--line)] pt-4 text-[12px]">
-            {[
-              ['Data points asked for', '4'],
-              ['Fields you typed', '0'],
-              ['Passwords created', '0'],
-            ].map(([item, amount]) => (
-              <div key={item} className="leader-row">
-                <span className="text-[color:var(--muted)]">{item}</span>
-                <span className="leader-fill" aria-hidden />
-                <span className="tabular font-semibold">{amount}</span>
-              </div>
-            ))}
-          </div>
-          <a
-            href={complete ? `${base}/done` : undefined}
-            aria-disabled={!complete}
-            className={`btn-primary mt-5 w-full !py-3 !text-[14px] ${
-              complete ? '' : 'pointer-events-none opacity-40'
-            }`}
-            style={{ background: 'var(--accent)' }}
+          <button
+            onClick={() => void submit()}
+            disabled={!complete || form.busy || submitting}
+            className="btn-primary mt-5 w-full !py-3 !text-[14px]"
           >
-            {complete ? 'Start my subscription →' : 'Waiting for your vault…'}
-          </a>
+            {form.busy || submitting
+              ? 'Sharing from your vault…'
+              : complete
+                ? 'Start my subscription →'
+                : 'Waiting for your vault…'}
+          </button>
+          {managing && (
+            <button
+              onClick={async () => {
+                await fetch('/api/revoke?demo=signalio', { method: 'POST' });
+                void refresh();
+              }}
+              className="btn-secondary mt-2.5 w-full !py-3 !text-[14px]"
+            >
+              Disconnect Geena
+            </button>
+          )}
           <p className="mt-3 text-[10px] leading-relaxed text-[color:var(--muted)]">
-            Illustrative pricing. Signalio is fictional; no mandate is signed and no payment
-            happens.
-          </p>
-        </div>
-
-        <div className="card p-5">
-          <p className="eyebrow">Why so little?</p>
-          <p className="mt-2 text-[12px] leading-relaxed text-[color:var(--muted)]">
-            A subscription needs a subscriber, somewhere to deliver, and a way to collect €12 —
-            so that is the whole manifest. The small ask is not politeness; on a consent screen,
-            over-asking is visible. Minimal manifests convert.
+            One act shares all four data points and starts the subscription. Each still lands as
+            its own receipted share in your Geena.
           </p>
         </div>
       </aside>

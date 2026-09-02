@@ -16,6 +16,19 @@ export function isDestination(value: string | null | undefined): value is Destin
   return !!value && (DESTINATIONS as readonly string[]).includes(value);
 }
 
+/** The ticket vocabulary — zones set the way fare classes are printed. */
+export const ZONE_CODE: Record<Destination, string> = {
+  Europe: 'ZONE: EU',
+  'Worldwide excl. US/Canada': 'ZONE: WW-X',
+  Worldwide: 'ZONE: WW',
+};
+
+export const ZONE_NAME: Record<Destination, string> = {
+  Europe: 'EUROPE',
+  'Worldwide excl. US/Canada': 'WORLDWIDE EXCL. US/CA',
+  Worldwide: 'WORLDWIDE',
+};
+
 export interface TripPrice {
   adult: number;
   perChild: number;

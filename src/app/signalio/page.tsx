@@ -40,7 +40,7 @@ export default function SignalioHome() {
               ['0', 'fields to type'],
             ].map(([value, label]) => (
               <div key={label}>
-                <dt className="tabular font-display text-[19px] font-bold">{value}</dt>
+                <dt className="font-display tabular text-[19px] font-bold">{value}</dt>
                 <dd className="text-[11px] text-[color:var(--muted)]">{label}</dd>
               </div>
             ))}

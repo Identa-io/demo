@@ -1,14 +1,12 @@
 import { cookies, headers } from 'next/headers';
-import { DEMOS, JOURNEY, PROGRESS_COOKIE, type DemoSlug } from '@/lib/demos';
+import { JOURNEY, PROGRESS_COOKIE, type DemoSlug } from '@/lib/demos';
 
 /**
- * The hub: one journey, three chapters, walked in order. Each card states its ask in one
- * generalized line — the full manifest lives one click away, in the demo's backstage drawer.
+ * The hub: one journey, three chapters, walked in order. Per the design contract each card
+ * already speaks its company's language — Yield in engraved serif, Signalio in terminal
+ * grotesk, Cover as a boarding pass — while the page around them stays neutral Geena chrome.
  * Progress lives in a hub-origin cookie (the demos are separate origins by design), written by
  * the middleware when a chapter-finish CTA routes back through here.
- *
- * On demo.test.geena.eu each chapter leads to the demo's own subdomain — every partner is its
- * own origin, and so is every demo; on a bare host the same routes work path-style.
  */
 export default async function Journey() {
   const host = (await headers()).get('host') ?? '';
@@ -18,6 +16,12 @@ export default async function Journey() {
   const doneCookie = (await cookies()).get(PROGRESS_COOKIE)?.value ?? '';
   const done = new Set(doneCookie.split(',').filter(Boolean));
   const current = JOURNEY.find((slug) => !done.has(slug)) ?? JOURNEY[0];
+  const status = (slug: DemoSlug) =>
+    done.has(slug) ? 'complete' : slug === current ? (done.size ? 'continue here' : 'start here') : '';
+
+  const yieldStatus = status('yield');
+  const signalioStatus = status('signalio');
+  const coverStatus = status('cover');
 
   return (
     <div className="min-h-screen">
@@ -32,34 +36,37 @@ export default async function Journey() {
           </span>
           <a
             href="https://github.com/Identa-io/demo"
-            className="text-[12px] font-medium text-[color:var(--muted)] underline underline-offset-4 hover:text-[color:var(--ink)]"
+            title="Source on GitHub"
+            aria-label="Source on GitHub"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[color:var(--muted)] hover:text-[color:var(--ink)]"
           >
-            Source on GitHub — the repo is the reference integration
+            <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
+            </svg>
           </a>
         </header>
 
-        <section className="border-t border-[color:var(--line)] py-14">
+        <section className="border-t border-[color:var(--line)] pb-9 pt-11 text-center">
           <p className="eyebrow">Connect with Geena · test environment · 5–10 minutes</p>
-          <h1 className="mt-4 max-w-2xl text-[46px] font-bold leading-[1.05] tracking-tight">
+          <h1 className="mx-auto mt-3.5 max-w-2xl text-[46px] font-bold leading-[1.05] tracking-tight">
             Type it once. Never type it again.
           </h1>
-          <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-[color:var(--muted)]">
-            One story, three fictional companies, walked in order. Chapter 1 is the last long form
-            you fill — into your own vault. Chapter 2 shows what that bought you: nothing to type.
-            Chapter 3 asks only for what no company has ever had. Use your real email: the consent
-            ceremony you will see is the real one.
+          <p className="mx-auto mt-3.5 max-w-xl text-[14px] leading-relaxed text-[color:var(--muted)]">
+            Three fictional companies, three different worlds — one recognizable button in all of
+            them. Walk the chapters in order; each card below already speaks its company&apos;s
+            language.
           </p>
 
-          {/* The scoreboard — the entire pitch, in three figures. */}
-          <dl className="mt-8 grid max-w-2xl gap-6 border-t border-[color:var(--line)] pt-5 sm:grid-cols-3">
+          {/* The scoreboard — the annotated keep from the design pass: the pitch in three figures. */}
+          <dl className="mx-auto mt-9 grid max-w-2xl grid-cols-3 gap-6 border-t border-[color:var(--line)] pt-5 text-left">
             {[
-              ['12', 'data points you type — all in chapter 1, plus the kids'],
-              ['0', 'typed in chapter 2 — that silence is the product'],
-              ['22', 'data points delivered — always current, always revocable'],
+              ['12', 'data points you type — all in chapter 1'],
+              ['0', 'typed in chapter 2'],
+              ['22', 'data points delivered — live from your vault'],
             ].map(([value, label]) => (
               <div key={label}>
-                <dt className="tabular text-[32px] font-bold tracking-tight">{value}</dt>
-                <dd className="mt-1 text-[12px] leading-relaxed text-[color:var(--muted)]">
+                <dt className="tabular text-[30px] font-bold tracking-tight">{value}</dt>
+                <dd className="mt-0.5 text-[11.5px] leading-relaxed text-[color:var(--muted)]">
                   {label}
                 </dd>
               </div>
@@ -67,180 +74,207 @@ export default async function Journey() {
           </dl>
         </section>
 
-        <section className="space-y-5 pb-4">
-          {JOURNEY.map((slug) => {
-            const demo = DEMOS[slug];
-            const finished = done.has(slug);
-            const isNext = slug === current && !finished;
-            return (
-              <a
-                key={slug}
-                href={hrefFor(slug)}
-                className={`group grid overflow-hidden rounded-2xl bg-[color:var(--card)] shadow-sm ring-1 transition-shadow hover:shadow-md md:grid-cols-[220px_1fr] ${
-                  isNext ? 'ring-2 ring-[color:var(--accent)]' : 'ring-[color:var(--line)]'
-                }`}
+        <section className="grid items-stretch gap-5 pb-10 md:grid-cols-3">
+          {/* Chapter I — Yield, in engraved serif on private-bank paper. */}
+          <a
+            href={hrefFor('yield')}
+            className="flex flex-col rounded-[14px] border p-6 shadow-sm transition-shadow hover:shadow-lg"
+            style={{
+              background: '#f5f3ea',
+              color: '#16302a',
+              borderColor: '#cfc9b4',
+              fontFamily: 'var(--font-spectral), serif',
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <span
+                className="flex h-[30px] w-[30px] items-center justify-center rounded-full border text-[15px] font-semibold"
+                style={{ borderColor: '#16302a', fontFamily: 'var(--font-cormorant), serif' }}
               >
-                <CardArt slug={slug} />
-                <div className="flex flex-col p-5 md:p-6">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="flex items-center gap-3">
-                      <span
-                        className={`tabular flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-bold ${
-                          finished
-                            ? 'bg-[color:var(--accent)] text-white'
-                            : 'bg-[color:var(--accent-soft)] text-[color:var(--accent)]'
-                        }`}
-                      >
-                        {finished ? '✓' : demo.chapter}
-                      </span>
-                      <span className="text-[17px] font-bold tracking-tight">{demo.name}</span>
-                      {isNext && (
-                        <span
-                          className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white"
-                          style={{ background: 'var(--accent)' }}
-                        >
-                          {done.size ? 'continue here' : 'start here'}
-                        </span>
-                      )}
-                    </p>
-                    <span className="flex flex-wrap justify-end gap-1">
-                      {demo.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-full border border-[color:var(--line)] px-2 py-0.5 text-[10px] font-medium text-[color:var(--muted)]"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-[13px] leading-relaxed text-[color:var(--muted)]">
-                    {demo.scenario} Asks for {demo.asks}.
-                  </p>
-                  <p className="mt-2 flex-1 text-[12px] leading-relaxed">
-                    <span className="font-semibold" style={{ color: 'var(--accent)' }}>
-                      Watch for:
-                    </span>{' '}
-                    <span className="text-[color:var(--ink)]">{demo.watchFor}</span>{' '}
-                    <span className="text-[color:var(--muted)]">{demo.proves}</span>
-                  </p>
-                  <span className="mt-3 text-[13px] font-semibold group-hover:underline group-hover:underline-offset-4">
-                    {finished ? `Revisit ${demo.name} →` : `Open chapter ${demo.chapter} →`}
-                  </span>
-                </div>
-              </a>
-            );
-          })}
-        </section>
-
-        <section className="my-12 grid gap-px overflow-hidden rounded-2xl bg-[color:var(--line)] ring-1 ring-[color:var(--line)] sm:grid-cols-3">
-          {[
-            [
-              'Connect',
-              'One hop to Geena: sign in or sign up there, one consent screen. The company never sees a password, a code, or your vault.',
-            ],
-            [
-              'Grant',
-              'You choose what each company gets, item by item — typing it once into your vault, or handing over what is already there.',
-            ],
-            [
-              'Served fresh',
-              'Companies read the current version of exactly what you granted. Every read leaves a receipt; revoking ends it, entirely.',
-            ],
-          ].map(([title, text], index) => (
-            <div key={title} className="bg-[color:var(--card)] p-6">
-              <h3 className="flex items-baseline gap-2 text-[12px] font-bold tracking-wide">
-                <span className="vault-value text-[10px] text-[color:var(--muted)]">
-                  0{index + 1}
-                </span>
-                {title}
-              </h3>
-              <p className="mt-2 text-[12px] leading-relaxed text-[color:var(--muted)]">{text}</p>
+                Y
+              </span>
+              <span
+                className="text-[9.5px] font-semibold uppercase tracking-[0.2em]"
+                style={{ color: '#8a7c55', fontFamily: 'var(--font-inter), sans-serif' }}
+              >
+                Chapter I{yieldStatus && ` · ${yieldStatus}`}
+              </span>
             </div>
-          ))}
+            <p
+              className="mt-4 text-[26px] font-semibold tracking-[0.06em]"
+              style={{ fontFamily: 'var(--font-cormorant), serif' }}
+            >
+              Yield
+            </p>
+            <p
+              className="mt-0.5 text-[9.5px] uppercase tracking-[0.18em]"
+              style={{ color: '#8a7c55', fontFamily: 'var(--font-inter), sans-serif' }}
+            >
+              Private index funds
+            </p>
+            <p className="mt-3.5 flex-1 text-[13px] leading-[1.65]" style={{ color: '#5f6b60' }}>
+              The heaviest onboarding of your life, once — identity, ID document, payout account
+              and tax residency, typed into your vault, not their form.
+            </p>
+            <svg viewBox="0 0 300 56" className="mt-4 w-full" aria-hidden>
+              <line x1="0" x2="300" y1="16" y2="16" stroke="#ddd8c4" strokeWidth="1" />
+              <line x1="0" x2="300" y1="38" y2="38" stroke="#ddd8c4" strokeWidth="1" />
+              <path
+                d="M0 48 L38 43 L76 46 L114 35 L152 31 L190 22 L228 26 L266 13 L300 7"
+                fill="none"
+                stroke="#16302a"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span
+              className="mt-3.5 flex h-10 items-center justify-center gap-2 rounded-lg text-[11px] font-semibold uppercase tracking-[0.14em]"
+              style={{
+                background: '#16302a',
+                color: '#f5f3ea',
+                fontFamily: 'var(--font-inter), sans-serif',
+              }}
+            >
+              Open Yield →
+            </span>
+          </a>
+
+          {/* Chapter 2 — Signalio, terminal grotesk under a dark chart header. */}
+          <a
+            href={hrefFor('signalio')}
+            className="flex flex-col overflow-hidden rounded-[14px] border bg-white shadow-sm transition-shadow hover:shadow-lg"
+            style={{ color: '#14161d', borderColor: '#e3e2dd' }}
+          >
+            <div className="flex h-24 items-end px-5.5 pb-3" style={{ background: '#14161d' }} aria-hidden>
+              <svg viewBox="0 0 240 56" className="w-full">
+                {[
+                  [0, 22],
+                  [27, 10],
+                  [54, 28],
+                  [81, 16],
+                  [108, 36],
+                  [135, 22],
+                  [162, 44],
+                  [189, 28],
+                ].map(([x, height]) => (
+                  <rect key={x} x={x} y={56 - height} width="14" height={height} rx="2" fill="#3a3f4a" />
+                ))}
+                <rect x="216" y="5" width="14" height="51" rx="2" fill="#d9542b" />
+              </svg>
+            </div>
+            <div className="flex flex-1 flex-col px-5.5 py-5">
+              <div className="flex items-center gap-2.5">
+                <span
+                  className="flex h-[26px] w-[26px] items-center justify-center rounded-md text-[12px] font-bold text-white"
+                  style={{ background: '#d9542b' }}
+                >
+                  S
+                </span>
+                <span
+                  className="text-[19px] font-bold tracking-tight"
+                  style={{ fontFamily: 'var(--font-grotesk), sans-serif' }}
+                >
+                  Signalio
+                </span>
+                <span
+                  className="ml-auto text-[10px] font-bold uppercase tracking-[0.08em]"
+                  style={{ color: '#d9542b' }}
+                >
+                  Chapter 2{signalioStatus && ` · ${signalioStatus}`}
+                </span>
+              </div>
+              <p className="mt-3 flex-1 text-[12.5px] leading-relaxed" style={{ color: '#6d6f75' }}>
+                Subscribe to market research — one consent screen, a running subscription. Name,
+                email, billing address, SEPA: every ask already in your vault.
+              </p>
+              <span
+                className="mt-2.5 flex h-10 items-center justify-center gap-2 rounded-lg text-[13.5px] font-bold text-white"
+                style={{ background: '#d9542b', fontFamily: 'var(--font-grotesk), sans-serif' }}
+              >
+                Open Signalio →
+              </span>
+            </div>
+          </a>
+
+          {/* Chapter 3 — Cover, a boarding pass with a perforation and a barcode. */}
+          <a
+            href={hrefFor('cover')}
+            className="flex flex-col overflow-hidden rounded-[14px] border bg-white shadow-sm transition-shadow hover:shadow-lg"
+            style={{
+              color: '#1b2733',
+              borderColor: '#d9dde0',
+              fontFamily: 'var(--font-public), sans-serif',
+            }}
+          >
+            <div className="px-5.5 pb-3.5 pt-4.5">
+              <div
+                className="flex items-baseline justify-between text-[9.5px] tracking-[0.1em]"
+                style={{ color: '#6d7883', fontFamily: 'var(--font-plexmono), monospace' }}
+              >
+                <span>COVER / FAMILY POLICY</span>
+                <span>
+                  CHAPTER 3{coverStatus && ` · ${coverStatus.toUpperCase()}`}
+                </span>
+              </div>
+              <div className="mt-2.5 flex items-center gap-3.5">
+                <span className="text-[26px] font-extrabold tracking-[0.02em]">AMS</span>
+                <span className="flex-1" style={{ borderTop: '2px dotted #9fb3c2' }} />
+                <span className="text-[26px] font-extrabold tracking-[0.02em]">LIS</span>
+              </div>
+              <div
+                className="mt-1 flex justify-between text-[9px]"
+                style={{ color: '#6d7883', fontFamily: 'var(--font-plexmono), monospace' }}
+              >
+                <span>THE FAMILY TRIP</span>
+                <span>PRICED PER PERSON</span>
+              </div>
+            </div>
+            <div className="relative" style={{ borderTop: '2px dashed #d9dde0' }}>
+              <span
+                className="absolute -left-[9px] -top-[9px] h-[18px] w-[18px] rounded-full"
+                style={{ background: 'var(--bg)', borderRight: '1px solid #d9dde0' }}
+              />
+              <span
+                className="absolute -right-[9px] -top-[9px] h-[18px] w-[18px] rounded-full"
+                style={{ background: 'var(--bg)', borderLeft: '1px solid #d9dde0' }}
+              />
+            </div>
+            <div className="flex flex-1 flex-col px-5.5 pb-4.5 pt-3.5">
+              <p className="flex-1 text-[12.5px] leading-relaxed" style={{ color: '#5c6a75' }}>
+                Insure the family trip — you flow in from your vault, you pick which children the
+                policy covers, and one optional file earns a discount.
+              </p>
+              <div className="mt-3">
+                <span
+                  className="inline-block border-2 border-dashed px-2 py-[3px] text-[9px] font-semibold tracking-[0.08em]"
+                  style={{
+                    transform: 'rotate(-4deg)',
+                    borderColor: '#d95b43',
+                    color: '#d95b43',
+                    fontFamily: 'var(--font-plexmono), monospace',
+                  }}
+                >
+                  −10% SWITCHER
+                </span>
+              </div>
+              <div
+                className="mt-3 h-[22px]"
+                style={{
+                  background:
+                    'repeating-linear-gradient(90deg,#1b2733 0,#1b2733 2px,transparent 2px,transparent 5px,#1b2733 5px,#1b2733 6px,transparent 6px,transparent 10px)',
+                }}
+                aria-hidden
+              />
+              <span
+                className="mt-2.5 flex h-10 items-center justify-center gap-2 rounded-lg text-[13px] font-extrabold text-white"
+                style={{ background: '#1b2733' }}
+              >
+                Open Cover →
+              </span>
+            </div>
+          </a>
         </section>
-
-        <footer className="flex flex-col items-center gap-1 border-t border-[color:var(--line)] py-10 text-center text-[11px] text-[color:var(--muted)]">
-          <p>
-            Yield, Signalio and Cover are fictional. Everything runs against the Geena test
-            environment — no payments, no policies, no briefings, and nothing stored beyond your
-            demo session.
-          </p>
-          <p>
-            Data served from a vault is always set in{' '}
-            <span className="vault-value">this typeface</span> — so you can tell which pixels came
-            from Geena. Every page also has a <strong className="font-semibold">Backstage</strong>{' '}
-            button: the manifest, the live connection, and each API call the integration made.
-          </p>
-        </footer>
       </main>
-    </div>
-  );
-}
-
-/** Restrained inline-SVG art per brand — no stock imagery in a public repo. */
-function CardArt({ slug }: { slug: DemoSlug }) {
-  if (slug === 'yield') {
-    return (
-      <div
-        className="flex h-28 items-end px-5 pb-4 md:h-full"
-        style={{ background: '#0d211b' }}
-        aria-hidden
-      >
-        <svg viewBox="0 0 240 64" className="w-full">
-          {[16, 40].map((y) => (
-            <line key={y} x1="0" x2="240" y1={y} y2={y} stroke="#28413a" strokeWidth="1" />
-          ))}
-          <path
-            d="M0 56 L30 50 L60 53 L90 42 L120 38 L150 28 L180 32 L210 18 L240 10"
-            fill="none"
-            stroke="#7fb89f"
-            strokeWidth="2.5"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
-    );
-  }
-  if (slug === 'signalio') {
-    return (
-      <div
-        className="flex h-28 items-end gap-1.5 px-6 pb-4 md:h-full"
-        style={{ background: '#14161d' }}
-        aria-hidden
-      >
-        <svg viewBox="0 0 240 72" className="w-full">
-          {[26, 8, 34, 16, 44, 22, 52, 30, 60].map((height, index) => (
-            <rect
-              key={index}
-              x={index * 27}
-              y={68 - height}
-              width="14"
-              height={height}
-              rx="2"
-              fill={index === 8 ? '#d9542b' : '#3a3f4a'}
-            />
-          ))}
-        </svg>
-      </div>
-    );
-  }
-  return (
-    <div className="relative h-28 md:h-full" style={{ background: '#0f2a3d' }} aria-hidden>
-      <svg viewBox="0 0 240 112" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
-        <path
-          d="M20 88 C 70 16, 150 16, 214 38"
-          fill="none"
-          stroke="#7fb4d9"
-          strokeWidth="2"
-          strokeDasharray="1 8"
-          strokeLinecap="round"
-        />
-        <circle cx="20" cy="88" r="3.5" fill="#e8a13c" />
-        <g transform="translate(214 38) rotate(24)">
-          <path d="M0 0 L-13 5 L-10 0 L-13 -5 Z" fill="#ffffff" />
-        </g>
-      </svg>
     </div>
   );
 }

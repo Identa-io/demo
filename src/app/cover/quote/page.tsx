@@ -1,25 +1,28 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { BulkSlotFields } from '@/components/bulk-fill-fields';
 import { GeenaButton } from '@/components/geena-button';
 import { StateNotice } from '@/components/demo-chrome';
 import { FamilyManager } from '@/components/family-manager';
-import { PendingFills } from '@/components/pending-fills';
 import { SlotFiller } from '@/components/slot-filler';
 import { ageFrom, docData, familyFromSlots, fullName, slotByKind } from '@/lib/records';
+import { useBulkFill } from '@/lib/use-bulk-fill';
 import { useDemoBase, useGeena } from '@/lib/use-geena';
-import { DESTINATIONS, tripPrice, type Destination } from '../pricing';
+import { DESTINATIONS, tripPrice, ZONE_CODE, type Destination } from '../pricing';
 
 /**
- * Cover — screen 2 of 3, the form stage. Trip details are ordinary form fields (they are not
- * personal data on file anywhere). Everything else demonstrates the chapter: the policyholder
- * flows in from the vault (the prefill intersection), the TRAVELLERS are chosen child by child
- * (subjects, priced per person), and the switching discount hangs off a file slot.
+ * Cover — screen 2 of 3, the form stage, set as the ticket being written: the travellers card
+ * is a boarding pass whose stub holds the child picker, the switching discount is a rubber
+ * stamp, and the quote itself is a second ticket that reprices live. Trip details are ordinary
+ * form fields (they are not personal data on file anywhere); everything else flows from the
+ * vault or is chosen child by child.
  */
 export default function CoverQuote() {
   const base = useDemoBase('cover');
   const { data, refresh } = useGeena('cover');
   const [denied, setDenied] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [destination, setDestination] = useState<Destination>('Europe');
   const [days, setDays] = useState(7);
 
@@ -42,273 +45,321 @@ export default function CoverQuote() {
   const managing = connected && !data?.accessEnded;
   const hasTravellers = !!holderName;
 
+  const form = useBulkFill('cover', managing ? slots : undefined);
+  const pendingSlots = (slots ?? []).filter(
+    (slot) => slot.target && !slot.subject && slot.status === 'pending',
+  );
+  const pendingReady =
+    pendingSlots.length > 0 && pendingSlots.every((slot) => form.slotReady(slot));
+  const pendingComplete =
+    pendingSlots.length === 0 ||
+    (pendingReady && pendingSlots.every((slot) => form.slotComplete(slot)));
+  const canBuy = managing && (hasTravellers || pendingSlots.length > 0) && pendingComplete;
+  const failedCount = Object.keys(form.errors).length;
+
   const price = useMemo(
     () => tripPrice({ destination, days, childCount: children.length, switching }),
     [destination, days, children.length, switching],
   );
 
   const doneHref = `${base}/done?destination=${encodeURIComponent(destination)}&days=${days}`;
+  const dayWord = days === 1 ? 'day' : 'days';
+
+  const buy = async () => {
+    if (pendingSlots.length > 0) {
+      setSubmitting(true);
+      const ok = await form.submitAll();
+      if (!ok) {
+        setSubmitting(false);
+        void refresh();
+        return;
+      }
+    }
+    window.location.href = doneHref;
+  };
 
   return (
     <main className="mx-auto max-w-6xl px-6">
       <section className="grid items-start gap-10 py-12 lg:grid-cols-[1.1fr_1fr]">
         <div>
           <p className="eyebrow">Your quote</p>
-          <h1 className="font-display mt-3 max-w-xl text-[34px] font-bold leading-[1.08] tracking-tight">
+          <h1 className="mt-3.5 max-w-xl text-[36px] font-extrabold leading-[1.08] tracking-[-0.02em]">
             One trip, the whole family.
           </h1>
-          <p className="mt-3 max-w-md text-[14px] leading-relaxed text-[color:var(--muted)]">
+          <p className="mt-3 max-w-md text-[14px] leading-[1.65] text-[color:var(--muted)]">
             Your half of this form no longer exists — it flowed in from your vault. The children
             are the only thing Cover still has to ask about.
           </p>
 
-          <div className="card mt-7 p-5">
-            <h2 className="text-[13px] font-semibold">Trip</h2>
-            <div className="mt-3 grid gap-4 sm:grid-cols-2">
-              <label>
-                <span className="field-label">Destination</span>
-                <select
-                  value={destination}
-                  onChange={(e) => setDestination(e.target.value as Destination)}
-                  className="mt-1 w-full rounded-lg border border-[color:var(--line)] bg-white px-3 py-2 text-[14px]"
-                >
-                  {DESTINATIONS.map((d) => (
-                    <option key={d}>{d}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                <span className="field-label">Length of trip</span>
-                <div className="mt-1 flex items-center gap-3">
-                  <input
-                    type="range"
-                    min={1}
-                    max={30}
-                    value={days}
-                    onChange={(e) => setDays(Number(e.target.value))}
-                    className="w-full accent-[color:var(--accent)]"
-                  />
-                  <span className="tabular w-16 shrink-0 text-right text-[14px] font-semibold">
-                    {days} {days === 1 ? 'day' : 'days'}
-                  </span>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <div className="card mt-4 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-[13px] font-semibold">Travellers</h2>
-              {!connected || data?.accessEnded ? (
-                <GeenaButton demo="cover" returnTo="/quote" label="Connect with Geena" />
-              ) : (
-                <span className="text-[11px] text-[color:var(--muted)]">
-                  from your vault — you chose exactly who
-                </span>
-              )}
-            </div>
-
-            {data && !data.configured && (
-              <div className="mt-3">
-                <StateNotice tone="info">{data.configureHint}</StateNotice>
-              </div>
-            )}
+          <div className="mt-7 flex flex-col gap-4">
+            {data && !data.configured && <StateNotice tone="info">{data.configureHint}</StateNotice>}
 
             {denied && !connected && (
-              <div className="mt-3">
-                <StateNotice tone="denied">
-                  Nothing was shared — the quote stays anonymous until you decide otherwise.
-                </StateNotice>
-              </div>
+              <StateNotice tone="denied">
+                Nothing was shared — the quote stays anonymous until you decide otherwise.
+              </StateNotice>
             )}
 
             {data?.accessEnded && (
-              <div className="mt-3">
-                <StateNotice tone="ended">
-                  Access ended — you revoked Cover in your Geena. The traveller list is gone from
-                  Cover&apos;s side, entirely.
-                </StateNotice>
-              </div>
+              <StateNotice tone="ended">
+                Access ended — you revoked Cover in your Geena. The traveller list is gone from
+                Cover&apos;s side, entirely.
+              </StateNotice>
             )}
 
-            {managing && !hasTravellers && (
-              <div className="mt-3">
-                <StateNotice tone="info">
-                  You&apos;re connected — your own details resolve right below (watch them arrive
-                  without typing), then add the children you&apos;re covering.
-                </StateNotice>
+            {(!connected || data?.accessEnded) && (
+              <div className="card flex flex-col items-start justify-between gap-4 p-5 sm:flex-row sm:items-center">
+                <div>
+                  <p className="text-[14px] font-bold">Board from your vault</p>
+                  <p className="mt-0.5 text-[12px] text-[color:var(--muted)]">
+                    One hop, one consent screen — then your details resolve without typing.
+                  </p>
+                </div>
+                <GeenaButton demo="cover" returnTo="/quote" label="Connect with Geena" />
               </div>
             )}
 
             {managing && (
-              <div className="mt-4">
-                <PendingFills
-                  demo="cover"
-                  slots={data?.slots}
-                  onChanged={() => void refresh()}
-                  title="Policyholder"
-                />
+              <div className="card overflow-hidden">
+                <div className="px-6 pb-4 pt-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h2 className="text-[14px] font-bold">Travellers</h2>
+                    <span className="font-mono text-[9.5px] tracking-[0.1em] text-[color:var(--mono-muted)]">
+                      FROM YOUR VAULT — YOU CHOSE EXACTLY WHO
+                    </span>
+                  </div>
+
+                  {!hasTravellers && (
+                    <div className="mt-3">
+                      <StateNotice tone="info">
+                        You&apos;re connected — your own details resolve right below (watch them
+                        arrive without typing), then add the children you&apos;re covering.
+                      </StateNotice>
+                    </div>
+                  )}
+
+                  {pendingSlots.length > 0 && (
+                    <div className="mt-3">
+                      <p className="field-label">Policyholder</p>
+                      <div className="mt-2 grid gap-x-4 gap-y-3 sm:grid-cols-2">
+                        {pendingSlots.map((slot) => (
+                          <div
+                            key={slot.slotId}
+                            className={
+                              slot.target === 'PersonAddress' ? 'sm:col-span-2' : ''
+                            }
+                          >
+                            <p className="font-mono text-[9.5px] tracking-[0.1em] text-[color:var(--mono-muted)]">
+                              {(slot.label ?? slot.target ?? '').toUpperCase()}
+                            </p>
+                            <div className="mt-1">
+                              <BulkSlotFields slot={slot} form={form} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="mt-2 text-[10px] leading-relaxed text-[color:var(--muted)]">
+                        Prefilled from your vault — buying the policy shares it all in one act.
+                      </p>
+                    </div>
+                  )}
+
+                  {hasTravellers && (
+                    <ul className="mt-3">
+                      <li className="leader-row py-3">
+                        <div>
+                          <p className="font-mono text-[13px] font-semibold">{holderName}</p>
+                          <p className="mt-0.5 text-[11px] text-[color:var(--mono-muted)]">
+                            Policyholder{holderBirth ? ` · born ${holderBirth}` : ''}
+                          </p>
+                        </div>
+                        <span className="leader-fill" aria-hidden />
+                        <span className="font-mono text-[13px] font-semibold">
+                          €{price.adult.toFixed(2)}
+                        </span>
+                      </li>
+                      {children.map((child) => {
+                        const age = child.dateOfBirth ? ageFrom(child.dateOfBirth) : null;
+                        return (
+                          <li
+                            key={child.alias}
+                            className="leader-row border-t border-[#e8ebed] py-3"
+                          >
+                            <div className="min-w-0">
+                              <p className="font-mono text-[13px] font-semibold">
+                                {child.name || 'Child'}
+                              </p>
+                              <p
+                                className="mt-0.5 truncate text-[11px] text-[color:var(--mono-muted)]"
+                                title="The pairwise reference Cover holds instead of an identity — stable for this policy, meaningless anywhere else. Two insurers could never match it."
+                              >
+                                Child{age != null ? ` · ${age} y` : ''} ·{' '}
+                                <span className="font-mono text-[0.95em]">
+                                  ref {child.alias.slice(0, 8)}
+                                </span>
+                              </p>
+                            </div>
+                            <span className="leader-fill" aria-hidden />
+                            <span className="font-mono text-[13px] font-semibold">
+                              €{price.perChild.toFixed(2)}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+
+                {childSubject && (
+                  <>
+                    <div className="tear" />
+                    <div className="px-6 pb-5 pt-4">
+                      <p className="font-mono text-[9.5px] tracking-[0.1em] text-[color:var(--mono-muted)]">
+                        {(childSubject.label ?? 'Travelling children').toUpperCase()}
+                      </p>
+                      <div className="mt-2.5">
+                        <FamilyManager
+                          demo="cover"
+                          subject={childSubject}
+                          slots={childSlots}
+                          onChanged={() => void refresh()}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
-            {hasTravellers && (
-              <ul className="mt-4 divide-y divide-[color:var(--line)]">
-                <li className="leader-row py-3">
-                  <div>
-                    <p className="vault-value text-[13.5px] font-semibold">{holderName}</p>
-                    <p className="text-[11px] text-[color:var(--muted)]">
-                      Policyholder{holderBirth ? ` · born ${holderBirth}` : ''}
+            {managing && fileSlot && (
+              <div className="card px-6 py-5">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h2 className="text-[14px] font-bold">Switching from another insurer?</h2>
+                  <span className="stamp">−10% SWITCHER</span>
+                </div>
+                {switching ? (
+                  <p className="mt-2.5 text-[12.5px] leading-[1.65]">
+                    <span className="font-mono text-[0.95em]">
+                      {sharedPolicy?.fileName ?? 'Your policy'}
+                    </span>{' '}
+                    <span className="text-[color:var(--muted)]">
+                      is shared — the discount is on. A file is a data point like any other:
+                      consented, receipted, revocable.
+                    </span>
+                  </p>
+                ) : (
+                  <div className="mt-3">
+                    <SlotFiller bare demo="cover" slot={fileSlot} onFilled={() => void refresh()} />
+                    <p className="mt-2 text-[10px] leading-relaxed text-[color:var(--muted)]">
+                      Optional — upload your current policy (or pick it from your vault) and we
+                      take 10% off the total.
                     </p>
                   </div>
-                  <span className="leader-fill" aria-hidden />
-                  <span className="tabular text-[13px] font-semibold">
-                    €{price.adult.toFixed(2)}
-                  </span>
-                </li>
-                {children.map((child) => {
-                  const age = child.dateOfBirth ? ageFrom(child.dateOfBirth) : null;
-                  return (
-                    <li key={child.alias} className="leader-row py-3">
-                      <div className="min-w-0">
-                        <p className="vault-value text-[13.5px] font-semibold">
-                          {child.name || 'Child'}
-                        </p>
-                        <p
-                          className="truncate text-[11px] text-[color:var(--muted)]"
-                          title="The pairwise reference Cover holds instead of an identity — stable for this policy, meaningless anywhere else. Two insurers could never match it."
-                        >
-                          Child{age != null ? ` · ${age} y` : ''} ·{' '}
-                          <span className="vault-value">ref {child.alias.slice(0, 8)}</span>
-                        </p>
-                      </div>
-                      <span className="leader-fill" aria-hidden />
-                      <span className="tabular text-[13px] font-semibold">
-                        €{price.perChild.toFixed(2)}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-
-            {managing && childSubject && (
-              <div className="mt-4 border-t border-[color:var(--line)] pt-4">
-                <p className="field-label">{childSubject.label ?? 'Travelling children'}</p>
-                <div className="mt-2">
-                  <FamilyManager
-                    demo="cover"
-                    subject={childSubject}
-                    slots={childSlots}
-                    onChanged={() => void refresh()}
-                  />
-                </div>
+                )}
               </div>
             )}
           </div>
-
-          {managing && fileSlot && (
-            <div className="card mt-4 p-5">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="text-[13px] font-semibold">Switching from another insurer?</h2>
-                <span
-                  className="tabular rounded-md px-2 py-0.5 text-[11px] font-bold"
-                  style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}
-                >
-                  −10%
-                </span>
-              </div>
-              {switching ? (
-                <p className="mt-2 text-[12.5px] leading-relaxed">
-                  <span className="vault-value">{sharedPolicy?.fileName ?? 'Your policy'}</span>{' '}
-                  <span className="text-[color:var(--muted)]">
-                    is shared — the discount is on. A file is a data point like any other:
-                    consented, receipted, revocable.
-                  </span>
-                </p>
-              ) : (
-                <div className="mt-3">
-                  <SlotFiller
-                    bare
-                    demo="cover"
-                    slot={fileSlot}
-                    onFilled={() => void refresh()}
-                  />
-                  <p className="mt-2 text-[10px] leading-relaxed text-[color:var(--muted)]">
-                    Optional — upload your current policy (or pick it from your vault) and we take
-                    10% off the total.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
-        <aside className="space-y-4 lg:sticky lg:top-6">
-          <div className="card p-6">
-            <p className="eyebrow">Your quote</p>
-            <div className="mt-3 flex items-baseline justify-between">
-              <span className="text-[13px] text-[color:var(--muted)]">
-                {destination} · {days} {days === 1 ? 'day' : 'days'} · {1 + children.length}{' '}
-                traveller{children.length ? 's' : ''}
-              </span>
+        <aside className="sticky top-6 flex h-fit flex-col gap-4 lg:mt-[152px]">
+          <div className="card overflow-hidden !shadow-[0_12px_32px_rgba(27,39,51,0.06)]">
+            <div className="px-[26px] pb-4.5 pt-[22px]">
+              <div className="font-mono flex items-baseline justify-between text-[10px] tracking-[0.1em] text-[color:var(--mono-muted)]">
+                <span>YOUR QUOTE</span>
+                <span>{ZONE_CODE[destination]}</span>
+              </div>
+              {/* Trip details are the only ordinary form fields on the page. */}
+              <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
+                <label>
+                  <span className="field-label">DESTINATION</span>
+                  <select
+                    value={destination}
+                    onChange={(e) => setDestination(e.target.value as Destination)}
+                    className="mt-1 w-full rounded-lg border border-[color:var(--line)] bg-white px-2.5 py-1.5 text-[12.5px]"
+                  >
+                    {DESTINATIONS.map((d) => (
+                      <option key={d}>{d}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="sm:w-36">
+                  <span className="field-label">DAYS</span>
+                  <div className="mt-1 flex items-center gap-2 pt-1.5">
+                    <input
+                      type="range"
+                      min={1}
+                      max={30}
+                      value={days}
+                      onChange={(e) => setDays(Number(e.target.value))}
+                      className="w-full accent-[color:var(--accent)]"
+                    />
+                    <span className="font-mono w-6 shrink-0 text-right text-[12.5px] font-semibold">
+                      {days}
+                    </span>
+                  </div>
+                </label>
+              </div>
+              <p className="mt-3 text-[13px] text-[color:var(--muted)]">
+                {destination} · {days} {dayWord} · {1 + children.length} traveller
+                {children.length ? 's' : ''}
+              </p>
+              <div className="mt-3 h-1 w-10 rounded-full" style={{ background: 'var(--stamp)' }} />
+              <p className="font-mono mt-2 text-[34px] font-semibold tracking-[-0.02em]">
+                €{price.total.toFixed(2)}
+              </p>
+              <p className="mt-0.5 text-[11px] text-[color:var(--mono-muted)]">
+                €{price.adult.toFixed(2)} adult
+                {children.length > 0 &&
+                  ` + ${children.length} × €${price.perChild.toFixed(2)} child`}
+                {switching && ` − €${price.discount.toFixed(2)} switching`}
+              </p>
             </div>
-            {/* The one warm mark on the page sits over the figure that matters. */}
-            <div className="mt-3 h-1 w-10 rounded-full" style={{ background: 'var(--sun)' }} />
-            <p className="tabular mt-2 text-[36px] font-bold tracking-tight">
-              €{price.total.toFixed(2)}
-            </p>
-            <p className="text-[11px] text-[color:var(--muted)]">
-              €{price.adult.toFixed(2)} adult
-              {children.length > 0 && ` + ${children.length} × €${price.perChild.toFixed(2)} child`}
-              {switching && ` − €${price.discount.toFixed(2)} switching`}
-            </p>
-
-            {/* Schedule of cover, set with leaders — the way policy schedules have always read. */}
-            <div className="mt-5 space-y-2 text-[12px]">
-              {[
-                ['Medical & repatriation', '€10m'],
-                ['Cancellation', '€5,000 / person'],
-                ['Baggage', '€2,500 / person'],
-                ['Excess', '€75'],
-              ].map(([item, amount]) => (
-                <div key={item} className="leader-row">
-                  <span className="text-[color:var(--muted)]">{item}</span>
-                  <span className="leader-fill" aria-hidden />
-                  <span className="tabular font-medium">{amount}</span>
-                </div>
-              ))}
-            </div>
-
-            <a
-              href={hasTravellers ? doneHref : undefined}
-              aria-disabled={!hasTravellers}
-              className={`btn-primary mt-5 w-full !py-3 !text-[14px] ${
-                hasTravellers ? '' : 'pointer-events-none opacity-40'
-              }`}
-              style={{ background: 'var(--accent)' }}
-            >
-              {hasTravellers ? 'Buy policy (simulated) →' : 'Add travellers first'}
-            </a>
-            <p className="mt-3 text-[10px] leading-relaxed text-[color:var(--muted)]">
-              Illustrative cover and pricing. Cover is fictional; no policy exists and no payment
-              happens.
-            </p>
-          </div>
-
-          {managing && (
-            <p className="text-center text-[11px] text-[color:var(--muted)]">
+            <div className="tear" />
+            <div className="px-[26px] pb-6 pt-4">
+              <div className="flex flex-col gap-2 text-[12px]">
+                {[
+                  ['Medical & repatriation', '€10m'],
+                  ['Cancellation', '€5,000 / person'],
+                  ['Baggage', '€2,500 / person'],
+                  ['Excess', '€75'],
+                ].map(([item, amount]) => (
+                  <div key={item} className="leader-row">
+                    <span className="text-[color:var(--mono-muted)]">{item}</span>
+                    <span className="leader-fill" aria-hidden />
+                    <span className="font-mono font-semibold">{amount}</span>
+                  </div>
+                ))}
+              </div>
               <button
-                onClick={async () => {
-                  await fetch('/api/revoke?demo=cover', { method: 'POST' });
-                  void refresh();
-                }}
-                className="underline underline-offset-2 hover:opacity-70"
+                onClick={() => void buy()}
+                disabled={!canBuy || form.busy || submitting}
+                className="btn-primary mt-5 w-full !py-3 !text-[14px] !font-bold"
               >
-                Disconnect Geena
-              </button>{' '}
-              — the traveller list disappears from Cover&apos;s side.
-            </p>
-          )}
+                {form.busy || submitting
+                  ? 'Sharing from your vault…'
+                  : canBuy || hasTravellers
+                    ? 'Buy policy (simulated) →'
+                    : 'Connect first'}
+              </button>
+              {failedCount > 0 && (
+                <p className="mt-2 text-[11px] text-red-700">
+                  {failedCount} data point{failedCount === 1 ? '' : 's'} did not land — details
+                  under the fields. Fix and buy again.
+                </p>
+              )}
+              {managing && (
+                <button
+                  onClick={async () => {
+                    await fetch('/api/revoke?demo=cover', { method: 'POST' });
+                    void refresh();
+                  }}
+                  className="btn-secondary mt-2.5 w-full !py-3 !text-[14px] !font-bold"
+                >
+                  Disconnect Geena
+                </button>
+              )}
+            </div>
+          </div>
         </aside>
       </section>
     </main>

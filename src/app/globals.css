@@ -1,18 +1,23 @@
 @import 'tailwindcss';
 
 @theme inline {
-  /* Tailwind's font-mono resolves to the suite's provenance face. */
-  --font-mono: var(--font-jbmono), ui-monospace, 'SF Mono', Menlo, monospace;
+  /* Tailwind's font-mono resolves to the active brand's provenance face. */
+  --font-mono: var(--font-mono-brand), ui-monospace, 'SF Mono', Menlo, monospace;
 }
 
 /*
  * One deployable, three worlds. Each demo carries its own tokens under [data-demo=…]; the Geena
- * connect button deliberately ignores all of them — three different brands, one recognizable
- * button, because the button IS the product shot.
+ * connect button and the journey bar deliberately ignore all of them — three different brands,
+ * one recognizable button, because the button IS the product shot.
+ *
+ * The palettes and per-brand rules are the design-canvas contract (~/design export, 2026-08-28):
+ *  - Yield: engraved private-bank paper — serif display, square corners, statement rules.
+ *  - Signalio: editorial terminal — grotesk, signal orange, rounded cards.
+ *  - Cover: boarding pass — Public Sans, mono labels, perforations, one barcode.
  */
 
 :root {
-  /* The neutral Geena shell (landing page + demo chrome). */
+  /* The neutral Geena shell (journey hub + shared chrome). */
   --bg: #f6f5f8;
   --ink: #191724;
   --muted: #6e6a7c;
@@ -21,45 +26,38 @@
   --accent: #4f46e5;
   --accent-ink: #ffffff;
   --accent-soft: #eef2ff;
+  --flash: #eef2ff;
+  --radius: 1rem;
   /* The one constant across every demo. */
   --geena: #4f46e5;
   --geena-ink: #ffffff;
   --font-display: var(--font-inter);
   --font-body: var(--font-inter);
+  --font-mono-brand: var(--font-jbmono);
 }
 
-/* Yield — fund platform: cool engraved paper, deep green ink, statement rules. Deliberately
-   colder than the warm-cream cliché: this should read annual report, not artisan bakery. */
+/* Yield — private index funds: engraved paper, deep green ink, gold labels, square corners. */
 [data-demo='yield'] {
-  --bg: #f8f8f5;
-  --ink: #0d211b;
-  --muted: #6b7069;
-  --card: #fffefc;
-  --line: #e4e2d8;
-  --accent: #17523f;
-  --accent-ink: #ffffff;
-  --accent-soft: #e6eee8;
-  --font-display: var(--font-fraunces);
-  --font-body: var(--font-inter);
+  --bg: #f5f3ea;
+  --ink: #16302a;
+  --muted: #5f6b60;
+  --card: #fdfcf5;
+  --line: #cfc9b4;
+  --line-faint: #ddd8c4;
+  --accent: #16302a;
+  --accent-ink: #f5f3ea;
+  --accent-soft: #e9e4d2;
+  --flash: #e9e4d2;
+  --gold: #8a7c55;
+  --mono-muted: #8a8672;
+  --cta: #12291f;
+  --radius: 0px;
+  --font-display: var(--font-cormorant);
+  --font-body: var(--font-spectral);
+  --font-mono-brand: var(--font-plexmono);
 }
 
-/* Cover — travel insurance: cool coastal blues, calm and legible. */
-[data-demo='cover'] {
-  --bg: #f4f8fa;
-  --ink: #0f2a3d;
-  --muted: #5e7385;
-  --card: #ffffff;
-  --line: #dce8ef;
-  --accent: #0e6fa8;
-  --accent-ink: #ffffff;
-  --accent-soft: #e2f0f8;
-  --sun: #e8a13c;
-  --font-display: var(--font-manrope);
-  --font-body: var(--font-inter);
-}
-
-/* Signalio — market research: editorial ink, signal orange, tight grotesk. Reads terminal,
-   not lifestyle — the product is a chart with an opinion. */
+/* Signalio — market intelligence: editorial ink, signal orange, tight grotesk. */
 [data-demo='signalio'] {
   --bg: #f5f5f7;
   --ink: #14161d;
@@ -69,8 +67,35 @@
   --accent: #d9542b;
   --accent-ink: #ffffff;
   --accent-soft: #f9e5dc;
+  --flash: #f9e5dc;
+  --cta: #d9542b;
+  --radius: 16px;
   --font-display: var(--font-grotesk);
   --font-body: var(--font-inter);
+  --font-mono-brand: var(--font-jbmono);
+}
+
+/* Cover — travel insurance: boarding-pass paper, deep blue, one rubber stamp. */
+[data-demo='cover'] {
+  --bg: #f7f7f4;
+  --ink: #1b2733;
+  --muted: #5c6a75;
+  --card: #ffffff;
+  --line: #d9dde0;
+  --accent: #1462a8;
+  --accent-ink: #ffffff;
+  --accent-soft: #e3edf6;
+  --flash: #e3edf6;
+  --gold: #6d7883;
+  --mono-muted: #6d7883;
+  --dotted: #9fb3c2;
+  --stamp: #d95b43;
+  --cta: #1462a8;
+  --footer-bg: #ffffff;
+  --radius: 14px;
+  --font-display: var(--font-public);
+  --font-body: var(--font-public);
+  --font-mono-brand: var(--font-plexmono);
 }
 
 body {
@@ -99,18 +124,19 @@ body {
 
 /*
  * The suite's one bold rule: PROVENANCE HAS A TYPEFACE. Every value that was served from the
- * vault — and every protocol identifier — is set in mono with tabular figures, so a viewer can
- * tell at a glance which pixels came from Geena and which are the app's own chrome.
+ * vault — and every protocol identifier — is set in the brand's mono with tabular figures, so a
+ * viewer can tell at a glance which pixels came from Geena and which are the app's own chrome.
  */
 .vault-value {
-  font-family: var(--font-jbmono), ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: var(--font-mono-brand), ui-monospace, 'SF Mono', Menlo, monospace;
   font-size: 0.92em;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
 
 /* Yield's signature: financial-statement rules. A section opens on a hairline and a concluding
-   figure closes over a double rule, the way audited statements set their totals. */
+   figure closes over a double rule, the way audited statements set their totals. Columns that
+   share a page CLOSE ON THE SAME BASELINE (the annotated rule from the design pass). */
 .ledger-open {
   border-top: 1.5px solid var(--ink);
 }
@@ -118,9 +144,8 @@ body {
   border-bottom: 3px double var(--ink);
 }
 
-/* Cover's signature: policy-schedule leaders — the dotted line between an item and its amount,
-   exactly as insurance schedules have set them for a century. (Signalio borrows them for its
-   briefing indices — a data table is a data table.) */
+/* Cover's signature (borrowed by Signalio's index tables): schedule leaders — the dotted line
+   between an item and its amount, the way policy schedules have always read. */
 .leader-row {
   display: flex;
   align-items: baseline;
@@ -129,16 +154,69 @@ body {
 }
 .leader-fill {
   flex: 1;
-  min-width: 1.5rem;
-  border-bottom: 1px dotted color-mix(in srgb, var(--ink) 32%, transparent);
+  min-width: 1rem;
+  border-bottom: 1px dotted var(--dotted, color-mix(in srgb, var(--ink) 32%, transparent));
   transform: translateY(-0.28em);
 }
 
-/* Shared surfaces — one card language across the brands, tinted by their tokens. */
+/* Cover's perforation: the tear line between a ticket's stub and its body. The notches take the
+   page background so the card reads as physically punched. */
+.tear {
+  position: relative;
+  border-top: 2px dashed var(--line);
+}
+.tear::before,
+.tear::after {
+  content: '';
+  position: absolute;
+  top: -9px;
+  height: 18px;
+  width: 18px;
+  border-radius: 9999px;
+  background: var(--bg);
+}
+.tear::before {
+  left: -9px;
+  border-right: 1px solid var(--line);
+}
+.tear::after {
+  right: -9px;
+  border-left: 1px solid var(--line);
+}
+
+/* Cover's barcode — pure CSS, no imagery. */
+.barcode {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--ink) 0,
+    var(--ink) 2px,
+    transparent 2px,
+    transparent 5px,
+    var(--ink) 5px,
+    var(--ink) 6px,
+    transparent 6px,
+    transparent 10px
+  );
+}
+
+/* Cover's rubber stamp. */
+.stamp {
+  display: inline-block;
+  transform: rotate(-4deg);
+  border: 2px dashed var(--stamp, #d95b43);
+  color: var(--stamp, #d95b43);
+  font-family: var(--font-plexmono), ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 4px 9px;
+}
+
+/* Shared surfaces — one card language, tinted and cornered by the brand's tokens. */
 .card {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 1rem;
+  border-radius: var(--radius);
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
 }
 
@@ -147,12 +225,13 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0.75rem;
-  background: var(--ink);
+  border-radius: calc(var(--radius) * 0.75);
+  background: var(--cta, var(--ink));
   color: #fff;
   font-weight: 600;
   padding: 0.625rem 1.25rem;
   font-size: 13px;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.09);
   transition: opacity 120ms ease;
 }
@@ -168,25 +247,39 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0.75rem;
+  border-radius: calc(var(--radius) * 0.75);
   border: 1px solid var(--line);
   background: var(--card);
   color: var(--ink);
   font-weight: 600;
   padding: 0.625rem 1.25rem;
   font-size: 13px;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   transition: border-color 120ms ease;
 }
 .btn-secondary:hover {
   border-color: var(--muted);
 }
 
+/* Eyebrows and field labels wear the brand's uniform: gold letterspaced smallcaps at Yield,
+   blue machine-set mono at Cover, plain bold caps everywhere else. */
 .eyebrow {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
+}
+[data-demo='yield'] .eyebrow {
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+}
+[data-demo='cover'] .eyebrow {
+  font-family: var(--font-plexmono), ui-monospace, monospace;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--accent);
 }
 
 .field-label {
@@ -196,13 +289,44 @@ body {
   text-transform: uppercase;
   color: var(--muted);
 }
+[data-demo='yield'] .field-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+}
+[data-demo='cover'] .field-label {
+  font-family: var(--font-plexmono), ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--mono-muted);
+}
 
-/* The staggered form fill — values arrive one by one, ~120ms apart. */
+/* The minimal brand footer: right-aligned nav, uppercase and letterspaced only at Yield. */
+.site-footer-nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.site-footer-nav a:hover {
+  color: var(--ink);
+}
+[data-demo='yield'] .site-footer-nav {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mono-muted);
+}
+
+/* The staggered form fill — values arrive one by one, ~120ms apart, flashing the brand tint. */
 @keyframes fill-in {
   from {
     opacity: 0;
     transform: translateY(4px);
-    background: var(--accent-soft);
+    background: var(--flash);
   }
   to {
     opacity: 1;

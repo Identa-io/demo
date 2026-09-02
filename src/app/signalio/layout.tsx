@@ -15,7 +15,7 @@ export default function SignalioLayout({ children }: { children: React.ReactNode
       className="min-h-screen bg-[color:var(--bg)] text-[color:var(--ink)]"
     >
       <JourneyBar demo="signalio" />
-      <header className="border-b border-[color:var(--line)] bg-[color:var(--card)]/70 backdrop-blur">
+      <header className="border-b border-[color:var(--line)] bg-white/70 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2.5">
             <span
@@ -26,13 +26,10 @@ export default function SignalioLayout({ children }: { children: React.ReactNode
               S
             </span>
             <span className="font-display text-[19px] font-bold tracking-tight">Signalio</span>
-            <span className="mt-0.5 hidden text-[11px] font-medium text-[color:var(--muted)] sm:block">
+            <span className="mt-0.5 text-[11px] font-medium text-[color:var(--muted)]">
               market intelligence
             </span>
           </div>
-          <p className="hidden text-[12px] text-[color:var(--muted)] md:block">
-            Researched by nobody — Signalio is a fictional publisher in a Geena demo.
-          </p>
         </div>
       </header>
       {children}

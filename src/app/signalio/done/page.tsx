@@ -6,8 +6,8 @@ import { useDemoBase, useGeena, useJourneyAdvanceHref } from '@/lib/use-geena';
 
 /**
  * Signalio — screen 3 of 3, the finish. The product delivers instantly (the first briefing,
- * addressed by name), the mandate line shows what the vault provided, and the scoreboard states
- * the chapter's whole argument: you typed nothing.
+ * addressed by name from the vault), then the dark handoff panel points at the last new thing
+ * the journey has to show.
  */
 export default function SignalioDone() {
   const base = useDemoBase('signalio');
@@ -24,10 +24,8 @@ export default function SignalioDone() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
       {!ready ? (
-        <div className="space-y-4">
-          <StateNotice tone="info">
-            No subscription yet — finish the checkout first.
-          </StateNotice>
+        <div className="flex flex-col items-start gap-4">
+          <StateNotice tone="info">No subscription yet — finish the checkout first.</StateNotice>
           <a href={`${base}/checkout`} className="btn-primary">
             Back to checkout
           </a>
@@ -64,23 +62,6 @@ export default function SignalioDone() {
               cancelling here means revoking in your Geena, which really ends our access. No
               retention flow, no &ldquo;are you sure&rdquo; maze.
             </p>
-          </div>
-
-          {/* The chapter's scoreboard — the argument, in three lines. */}
-          <div className="card mt-4 p-5">
-            <div className="space-y-2 text-[12px]">
-              {[
-                ['Fields you typed in chapter 1', '8'],
-                ['Fields you typed in chapter 2', '0'],
-                ['Data points Signalio received', '4 — served live from your vault'],
-              ].map(([item, amount]) => (
-                <div key={item} className="leader-row">
-                  <span className="text-[color:var(--muted)]">{item}</span>
-                  <span className="leader-fill" aria-hidden />
-                  <span className="tabular font-semibold">{amount}</span>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* The handoff — the last new thing the journey has to show. */}
