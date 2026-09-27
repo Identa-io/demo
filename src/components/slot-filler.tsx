@@ -28,14 +28,15 @@ import { LABEL_OPTIONS, SCHEMA_FIELDS, SINGLETON_TARGETS } from '@/lib/schema-fi
 export function SlotFiller({
   demo,
   slot,
-  person,
+  participant,
   current,
   bare,
   onFilled,
 }: {
   demo: DemoSlug;
   slot: DataSlot;
-  person?: string;
+  /** For a subject slot: the pairwise alias of the family member the act is for. */
+  participant?: string;
   current?: Record<string, unknown>;
   bare?: boolean;
   onFilled: () => void;
@@ -72,7 +73,7 @@ export function SlotFiller({
   const load = useCallback(async () => {
     if (updateMode) return; // the update form starts from the served record, nothing to list
     const params = new URLSearchParams({ demo, slot: slot.slotId });
-    if (person) params.set('person', person);
+    if (participant) params.set('participant', participant);
     const res = await fetch(`/api/fill/candidates?${params}`, { cache: 'no-store' });
     const body = (await res.json()) as CandidatesResponse & { error?: string };
     if (!res.ok) {
@@ -100,7 +101,7 @@ export function SlotFiller({
     }
     // fields derives from slot.target, already a dependency via slot.slotId's stability.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [demo, slot.slotId, person, singleton, updateMode]);
+  }, [demo, slot.slotId, participant, singleton, updateMode]);
 
   useEffect(() => {
     void load();
@@ -127,7 +128,7 @@ export function SlotFiller({
       fetch('/api/fill/attach', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ demo, slotId: slot.slotId, resourceId, person }),
+        body: JSON.stringify({ demo, slotId: slot.slotId, resourceId, participant }),
       }),
     );
 
@@ -138,7 +139,7 @@ export function SlotFiller({
       fetch('/api/fill/set', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ demo, slotId: slot.slotId, data: data(), person }),
+        body: JSON.stringify({ demo, slotId: slot.slotId, data: data(), participant }),
       }),
     );
 
@@ -160,7 +161,7 @@ export function SlotFiller({
           demo,
           slotId: slot.slotId,
           data: data(),
-          person,
+          participant,
           name: label.trim() || undefined,
         }),
       }),

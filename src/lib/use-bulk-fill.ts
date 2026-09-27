@@ -90,7 +90,7 @@ export function useBulkFill(demo: DemoSlug, slots: DataSlot[] | undefined) {
     for (const slot of fillable) {
       if (initialized.current.has(slot.slotId) || fetching.current.has(slot.slotId)) continue;
       const target = slot.target!;
-      const record = slot.records.find((r) => r.type === 'document' && !r.subject);
+      const record = slot.records.find((r) => r.type === 'document' && !r.participant);
 
       if (slot.status === 'granted' || record) {
         initialized.current.add(slot.slotId);

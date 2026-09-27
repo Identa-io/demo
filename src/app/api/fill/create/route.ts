@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     demo?: string;
     slotId?: string;
     data?: Record<string, unknown>;
-    person?: string;
+    participant?: string;
     name?: string;
   };
   if (!isDemoSlug(body.demo) || !body.slotId || !body.data) {
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       ds.requestId,
       body.slotId,
       body.data,
-      body.person,
+      body.participant,
     );
     return NextResponse.json(out);
   } catch (error) {

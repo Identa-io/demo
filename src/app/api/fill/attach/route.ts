@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     demo?: string;
     slotId?: string;
     resourceId?: string;
-    person?: string;
+    participant?: string;
   };
   if (!isDemoSlug(body.demo) || !body.slotId || !body.resourceId) {
     return NextResponse.json({ error: 'bad request' }, { status: 400 });
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       ds.requestId,
       body.slotId,
       body.resourceId,
-      body.person,
+      body.participant,
     );
     return NextResponse.json(out);
   } catch (error) {

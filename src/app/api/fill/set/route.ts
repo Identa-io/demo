@@ -12,15 +12,16 @@ import { demoSession, getSession } from '@/lib/session';
  * Singleton fill: a person has one legal name, one birth date — picking between instances makes
  * no sense, so "set" means: attach the existing document (usually the empty starter) and write
  * the typed value into it; create only when nothing exists. Both halves are receipted acts under
- * their own verbs (`fill` for the attach, `edit` for the write). Family-member slots fall back
- * to create-and-grant — delegated writes into a relative's vault stay first-party by design.
+ * their own verbs (`fill` for the attach, `edit` for the write). Family-member slots (a
+ * `participant` alias is given) fall back to create-and-grant — delegated writes into a
+ * relative's vault stay first-party by design (`403 subject_item_readonly`).
  */
 export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => ({}))) as {
     demo?: string;
     slotId?: string;
     data?: Record<string, unknown>;
-    person?: string;
+    participant?: string;
   };
   if (!isDemoSlug(body.demo) || !body.slotId || !body.data) {
     return NextResponse.json({ error: 'bad request' }, { status: 400 });
@@ -31,14 +32,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'not connected' }, { status: 401 });
   }
   try {
-    if (body.person) {
+    if (body.participant) {
       const out = await createSlotDocument(
         body.demo,
         ds,
         ds.requestId,
         body.slotId,
         body.data,
-        body.person,
+        body.participant,
       );
       return NextResponse.json(out);
     }

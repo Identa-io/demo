@@ -15,13 +15,13 @@ export function slotByKind(slots: DataSlot[] | undefined, kind: string): DataSlo
   return slots?.find((slot) => slot.kind === kind);
 }
 
-/** First served document data for a target — the recipient's own record (no subject block). */
+/** First served document data for a target — the recipient's own record (`participant` null). */
 export function docData(
   slots: DataSlot[] | undefined,
   target: string,
 ): Record<string, unknown> | undefined {
   const slot = slotByTarget(slots, target);
-  const record = slot?.records.find((r) => r.type === 'document' && !r.subject);
+  const record = slot?.records.find((r) => r.type === 'document' && !r.participant);
   return record?.data;
 }
 
@@ -113,27 +113,29 @@ export function candidateSummary(
 /** One family member as the organization sees them: the pairwise alias, never an identity. */
 export interface FamilyMemberView {
   alias: string;
-  relation: string;
+  /** The manifest subject this party answers ("child"). */
+  subjectId: string;
   name: string;
   dateOfBirth: string;
 }
 
 /**
- * Groups subject-slot records by person. Each served record about a family member carries a
- * `subject` block — the same alias across slots of one connection, meaningless outside it.
+ * Groups subject-slot records by party. Each served record about a family member carries a
+ * `participant` block — the same alias across slots of one connection, meaningless outside it.
+ * A record served `unavailable` has no data and is skipped, never counted as a traveller.
  */
 export function familyFromSlots(slots: DataSlot[] | undefined): FamilyMemberView[] {
   const byAlias = new Map<string, FamilyMemberView>();
   const collect = (record: ServedRecord, apply: (p: FamilyMemberView) => void) => {
-    if (!record.subject) return;
-    const entry = byAlias.get(record.subject.alias) ?? {
-      alias: record.subject.alias,
-      relation: record.subject.relation,
+    if (!record.participant) return;
+    const entry = byAlias.get(record.participant.alias) ?? {
+      alias: record.participant.alias,
+      subjectId: record.participant.subjectId,
       name: '',
       dateOfBirth: '',
     };
     apply(entry);
-    byAlias.set(record.subject.alias, entry);
+    byAlias.set(record.participant.alias, entry);
   };
   for (const slot of slots ?? []) {
     for (const record of slot.records) {
