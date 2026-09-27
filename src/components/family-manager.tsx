@@ -2,15 +2,16 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { DataSlot } from '@/app/api/data/route';
-import type { StatusSubject, SubjectPersonCandidate } from '@/lib/geena/partner';
+import type { StatusSubject, SubjectParticipantCandidate } from '@/lib/geena/partner';
 import { DEMOS, type DemoSlug } from '@/lib/demos';
 import { SlotFiller } from './slot-filler';
 
 /**
- * The person half of the fill surface, in-app: who answers a subject ("each child you cover"),
- * and adding someone new — the "add kid" act. Picking or adding a person doesn't share anything
- * by itself: the per-slot fills below the pick are the consented acts, one by one. The label the
- * user types stays theirs — Geena never serves it on any org-facing surface.
+ * The subject half of the fill surface, in-app: who answers a subject ("each child you cover"),
+ * and adding someone new — the "add kid" act. Picking or adding a participant doesn't share
+ * anything by itself: the per-slot fills below the pick are the consented acts, one by one. The
+ * label the user types stays theirs — Geena never serves it on any org-facing surface; Cover
+ * only ever holds the pairwise alias.
  */
 export function FamilyManager({
   demo,
@@ -23,7 +24,7 @@ export function FamilyManager({
   slots: DataSlot[];
   onChanged: () => void;
 }) {
-  const [persons, setPersons] = useState<SubjectPersonCandidate[] | null>(null);
+  const [participants, setParticipants] = useState<SubjectParticipantCandidate[] | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [label, setLabel] = useState('');
@@ -37,24 +38,27 @@ export function FamilyManager({
         cache: 'no-store',
       },
     );
-    const body = (await res.json()) as { persons?: SubjectPersonCandidate[]; error?: string };
+    const body = (await res.json()) as {
+      participants?: SubjectParticipantCandidate[];
+      error?: string;
+    };
     if (!res.ok) {
       setError(body.error ?? 'Could not list your family members.');
-      setPersons([]);
+      setParticipants([]);
       return;
     }
-    setPersons(body.persons ?? []);
+    setParticipants(body.participants ?? []);
   }, [demo, subject.id]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  const addPerson = async () => {
+  const addParticipant = async () => {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch('/api/subjects/person', {
+      const res = await fetch('/api/subjects/participant', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ demo, subjectId: subject.id, label: label.trim() }),
@@ -76,21 +80,25 @@ export function FamilyManager({
   return (
     <div style={{ fontFamily: 'var(--font-inter)' }}>
       <div className="flex flex-wrap items-center gap-2">
-        {persons === null ? (
+        {participants === null ? (
           <span className="text-[12px] text-[color:var(--muted)]">Checking your family…</span>
         ) : (
-          persons.map((person) => (
+          participants.map((participant) => (
             <button
-              key={person.alias}
-              onClick={() => setSelected(selected === person.alias ? null : person.alias)}
+              key={participant.alias}
+              onClick={() =>
+                setSelected(selected === participant.alias ? null : participant.alias)
+              }
               className={`rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-colors ${
-                selected === person.alias
+                selected === participant.alias
                   ? 'border-[color:var(--accent)] text-[color:var(--accent)]'
                   : 'border-[color:var(--line)] hover:border-[color:var(--muted)]'
               }`}
             >
-              {person.label}
-              {person.bound && <span className="ml-1.5 text-[10px] opacity-70">✓ covered</span>}
+              {participant.label}
+              {participant.bound && (
+                <span className="ml-1.5 text-[10px] opacity-70">✓ covered</span>
+              )}
             </button>
           ))
         )}
@@ -112,7 +120,7 @@ export function FamilyManager({
             aria-label="The child's name"
           />
           <button
-            onClick={() => void addPerson()}
+            onClick={() => void addParticipant()}
             disabled={busy || !label.trim()}
             className="btn-primary !px-3 !py-1.5 !text-[12px]"
           >
@@ -128,14 +136,14 @@ export function FamilyManager({
       {selected && (
         <div className="mt-4 space-y-2.5">
           <p className="field-label">
-            Share about {persons?.find((p) => p.alias === selected)?.label ?? 'them'}
+            Share about {participants?.find((p) => p.alias === selected)?.label ?? 'them'}
           </p>
           {slots.map((slot) => (
             <div key={slot.slotId} className="flex flex-wrap items-center gap-2">
               <span className="w-40 text-[12px] text-[color:var(--muted)]">
                 {slot.label ?? slot.target}
               </span>
-              <SlotFiller demo={demo} slot={slot} person={selected} onFilled={onChanged} />
+              <SlotFiller demo={demo} slot={slot} participant={selected} onFilled={onChanged} />
             </div>
           ))}
           <p className="text-[10px] leading-relaxed text-[color:var(--muted)]">

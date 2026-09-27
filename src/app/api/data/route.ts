@@ -4,6 +4,7 @@ import { demoCredentials, geenaDashboardUrl } from '@/lib/env';
 import {
   getSlot,
   getStatus,
+  type ParticipantRef,
   type ServedRecord,
   type StatusGroup,
   type StatusSubject,
@@ -43,7 +44,10 @@ export interface DataResponse {
   /** Deep link to the person's own grant screen on the Geena dashboard. */
   grantUrl?: string;
   groups?: StatusGroup[];
+  /** The parties the manifest asks about beyond the recipient (the ask). */
   subjects?: StatusSubject[];
+  /** Who actually answers them, by pairwise alias (derived from the grants). */
+  participants?: ParticipantRef[];
   slots?: DataSlot[];
   /** Set when the connection stopped serving (revoked/expired) — the "access ended" state. */
   accessEnded?: boolean;
@@ -96,6 +100,7 @@ export async function GET(request: NextRequest) {
       grantUrl: `${geenaDashboardUrl()}/personal/connections/${ds.requestId}`,
       groups: status.groups ?? [],
       subjects: status.subjects ?? [],
+      participants: status.participants ?? [],
       slots: status.items.map((item) => ({
         slotId: item.slotId,
         label: item.label,

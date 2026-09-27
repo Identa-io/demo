@@ -7,7 +7,7 @@
     { "id": "switch", "label": "Switching from another insurer", "order": 3 }
   ],
   "subjects": [
-    { "id": "child", "relation": "CHILD", "label": "Each child you cover", "repeat": true }
+    { "id": "child", "type": "PERSON", "relation": "CHILD", "label": "Each child you cover", "repeat": true }
   ],
   "slots": [
     {

@@ -43,26 +43,48 @@ export interface StatusGroup {
   order: number;
 }
 
+/** The lane a subject is answered from: a family-member vault, or a company the user manages. */
+export type ParticipantType = 'person' | 'company';
+
 export interface StatusSubject {
   id: string;
-  relation: string;
+  type: ParticipantType;
+  /** The declared kinship — present on `person` subjects only; a company has none. */
+  relation?: string;
   label?: string;
   repeat: boolean;
+}
+
+/**
+ * One party actually answering a subject: the pairwise alias — stable across this
+ * organization's connections, meaningless anywhere else, never a vault id.
+ */
+export interface ParticipantRef {
+  subjectId: string;
+  type: ParticipantType;
+  alias: string;
 }
 
 export interface StatusResponse {
   state: string;
   groups?: StatusGroup[];
-  /** The people this manifest asks about beyond the recipient — the cast. */
+  /** The parties this manifest asks about beyond the recipient — the ask. */
   subjects?: StatusSubject[];
+  /** Who is actually cast — derived from the grants; absent while nobody is bound. */
+  participants?: ParticipantRef[];
   items: StatusItem[];
 }
 
-/** One decrypted record. `document` carries `data`; `file` carries metadata + a download route;
- * records answering a subject slot carry a `subject` block with the pairwise alias. */
+/**
+ * One decrypted record. `document` carries `data`; `file` carries metadata + a download route.
+ * EVERY record carries `participant`: `null` for the recipient's own data, or the party a
+ * subject slot's record belongs to. A record may instead arrive `status: "unavailable"` with a
+ * `reason` and no `type` — read `status` before `type`.
+ */
 export interface ServedRecord {
   resourceId: string;
-  type: 'document' | 'id_document' | 'file';
+  participant?: ParticipantRef | null;
+  type?: 'document' | 'id_document' | 'file';
   version?: number;
   name?: string;
   data?: Record<string, unknown>;
@@ -71,13 +93,17 @@ export interface ServedRecord {
   mimeType?: string;
   fileSize?: number;
   downloadUrl?: string;
-  subject?: { subjectId: string; relation: string; label?: string; alias: string };
+  status?: 'available' | 'unavailable';
+  /** `participant_ineligible` (the user no longer speaks for the party) or `record_unreadable`. */
+  reason?: string;
 }
 
 export interface SlotResponse {
   slotId: string;
   label?: string;
   group?: string;
+  /** The ask, as on `/status`; who answered is each record's own `participant`. */
+  subject?: string;
   kind: string;
   target?: string;
   records?: ServedRecord[];
@@ -178,17 +204,23 @@ export interface CandidatesResponse {
   candidates: CandidateItem[];
 }
 
-export interface SubjectPersonCandidate {
+/** Who could answer a subject: a family member, or a company the user manages. */
+export interface SubjectParticipantCandidate {
   alias: string;
+  /** The user's own label for the party — appears here and on no other partner surface. */
   label: string;
   bound: boolean;
+  /** Company candidates only, best-effort: what tells two companies apart in a picker. */
+  details?: { registrationCountry?: string; registrationNumber?: string };
 }
 
 export interface SubjectCandidatesResponse {
   subjectId: string;
-  relation: string;
+  type: ParticipantType;
+  relation?: string;
   label?: string;
-  persons: SubjectPersonCandidate[];
+  repeat?: boolean;
+  participants: SubjectParticipantCandidate[];
 }
 
 async function partnerSend<T>(
@@ -236,7 +268,13 @@ async function partnerSend<T>(
   return payload;
 }
 
-const personQuery = (person?: string) => (person ? `?person=${encodeURIComponent(person)}` : '');
+/**
+ * The participant a subject-slot act is for — a pairwise alias from the subject's candidates.
+ * Required on subject slots (`422 participant_required`), refused on recipient slots
+ * (`422 participant_not_allowed`); the query form, which wins over a body field.
+ */
+const participantQuery = (participant?: string) =>
+  participant ? `?participant=${encodeURIComponent(participant)}` : '';
 
 /** The fill surface: enumerate, pick, create — every act user-present and receipted. */
 export function getSlotCandidates(
@@ -244,12 +282,12 @@ export function getSlotCandidates(
   ds: DemoSession,
   requestId: string,
   slotId: string,
-  person?: string,
+  participant?: string,
 ) {
   return partnerGet<CandidatesResponse>(
     demo,
     ds,
-    `/requests/${requestId}/slots/${slotId}/candidates${personQuery(person)}`,
+    `/requests/${requestId}/slots/${slotId}/candidates${participantQuery(participant)}`,
     'json',
   );
 }
@@ -260,14 +298,14 @@ export function attachSlot(
   requestId: string,
   slotId: string,
   resourceId: string,
-  person?: string,
+  participant?: string,
 ) {
   return partnerSend(
     demo,
     ds,
     'POST',
     `/requests/${requestId}/slots/${slotId}/attach`,
-    JSON.stringify(person ? { resourceId, person } : { resourceId }),
+    JSON.stringify(participant ? { resourceId, participant } : { resourceId }),
     'application/json',
   );
 }
@@ -278,13 +316,13 @@ export function createSlotDocument(
   requestId: string,
   slotId: string,
   data: Record<string, unknown>,
-  person?: string,
+  participant?: string,
 ) {
   return partnerSend(
     demo,
     ds,
     'POST',
-    `/requests/${requestId}/slots/${slotId}${personQuery(person)}`,
+    `/requests/${requestId}/slots/${slotId}${participantQuery(participant)}`,
     JSON.stringify({ data }),
     'application/json',
   );
@@ -300,7 +338,7 @@ export function uploadSlotFile(
   return partnerSend(demo, ds, 'POST', `/requests/${requestId}/slots/${slotId}`, form);
 }
 
-/** The person half (subjects-fill-v2): who could answer a subject, and adding someone new. */
+/** The subject half of the fill surface: who could answer a subject, and adding someone new. */
 export function getSubjectCandidates(
   demo: DemoSlug,
   ds: DemoSession,
@@ -315,7 +353,12 @@ export function getSubjectCandidates(
   );
 }
 
-export function createSubjectPerson(
+/**
+ * The "add" act: what is minted follows the subject's type — a family-member vault owned by the
+ * user (the relation comes from the manifest, the label from what they typed), or a company
+ * the user founds. Not idempotent: single-flight the button.
+ */
+export function createSubjectParticipant(
   demo: DemoSlug,
   ds: DemoSession,
   requestId: string,
@@ -326,7 +369,7 @@ export function createSubjectPerson(
     demo,
     ds,
     'POST',
-    `/requests/${requestId}/subjects/${encodeURIComponent(subjectId)}/persons`,
+    `/requests/${requestId}/subjects/${encodeURIComponent(subjectId)}/participants`,
     JSON.stringify({ label }),
     'application/json',
   );

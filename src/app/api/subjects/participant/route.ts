@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isDemoSlug } from '@/lib/demos';
-import { createSubjectPerson } from '@/lib/geena/partner';
+import { createSubjectParticipant } from '@/lib/geena/partner';
 import { demoSession, getSession } from '@/lib/session';
 
-/** The "add kid" act: relation from the subject, label typed by the user, alias returned. */
+/**
+ * The "add" act on a subject — for Cover, "add a child": the relation comes from the subject's
+ * declaration, the label from what the user typed, and the response is the pairwise alias the
+ * per-slot fills then name as `participant`.
+ */
 export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => ({}))) as {
     demo?: string;
@@ -19,7 +23,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'not connected' }, { status: 401 });
   }
   try {
-    const out = await createSubjectPerson(
+    const out = await createSubjectParticipant(
       body.demo,
       ds,
       ds.requestId,
@@ -29,7 +33,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(out);
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'could not add the person' },
+      { error: error instanceof Error ? error.message : 'could not add them' },
       { status: 400 },
     );
   }

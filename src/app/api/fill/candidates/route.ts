@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       ds,
       ds.requestId,
       slotId,
-      params.get('person') ?? undefined,
+      params.get('participant') ?? undefined,
     );
     return NextResponse.json(out);
   } catch (error) {

@@ -64,7 +64,8 @@ export function BulkSlotFields({ slot, form }: { slot: DataSlot; form: BulkFillF
   const values = form.values[slot.slotId] ?? {};
   const candidates = form.candidatesFor(slot.slotId);
   const granted =
-    slot.status === 'granted' || slot.records.some((r) => r.type === 'document' && !r.subject);
+    slot.status === 'granted' ||
+    slot.records.some((r) => r.type === 'document' && !r.participant);
   const offerReuse = !granted && !SINGLETON_TARGETS.has(target) && candidates.length > 0;
   const chosen = form.selection[slot.slotId] ?? NEW_ITEM;
   const drafting = offerReuse && chosen === NEW_ITEM;
