@@ -84,7 +84,7 @@ export interface StatusResponse {
 export interface ServedRecord {
   resourceId: string;
   participant?: ParticipantRef | null;
-  type?: 'document' | 'id_document' | 'file';
+  type?: 'document' | 'file';
   version?: number;
   name?: string;
   data?: Record<string, unknown>;
@@ -182,12 +182,12 @@ export function getSlotFile(
 /**
  * One resource that could back a slot. Document rows carry their current `data` when the
  * user's key context can open them (fill-surface bound 2 as amended 2026-08-14) — that is what
- * lets the picker show WHICH email and prefill singleton forms; undecryptable rows, files and
- * ID documents are metadata only.
+ * lets the picker show WHICH email and prefill singleton forms; undecryptable rows and files
+ * are metadata only.
  */
 export interface CandidateItem {
   resourceId: string;
-  type: 'document' | 'id_document' | 'file';
+  type: 'document' | 'file';
   name?: string;
   label?: string;
   fileName?: string;
