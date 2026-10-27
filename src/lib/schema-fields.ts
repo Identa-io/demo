@@ -63,7 +63,12 @@ export const SCHEMA_FIELDS: Record<string, SchemaField[]> = {
     { key: 'employmentType', label: 'Employment type', placeholder: 'full-time' },
   ],
   PersonFinancialProfile: [
-    { key: 'grossAnnualIncome', label: 'Gross annual income' },
+    {
+      key: 'grossAnnualIncome',
+      label: 'Gross annual income',
+      type: 'number',
+      placeholder: '85000',
+    },
     { key: 'grossAnnualIncomeCurrency', label: 'Currency', placeholder: 'EUR' },
   ],
   PersonBankAccount: [
@@ -91,26 +96,34 @@ export function toE164(typed: string): string | undefined {
 }
 
 /**
- * What a form's values write to a record: empty fields left out, a phone number in E.164.
- * Throws, saying what to type, when a phone number cannot be read.
+ * What a form's values write to a record: empty fields left out, a phone number in E.164, an
+ * amount as a number (the schema types it so, and refuses one below zero). Throws, saying what
+ * to type, when a phone number or an amount cannot be read.
  */
 export function recordData(
   target: string,
   values: Record<string, string>,
-): Record<string, string> {
+): Record<string, string | number> {
   const types = new Map((SCHEMA_FIELDS[target] ?? []).map((field) => [field.key, field.type]));
-  const out: Record<string, string> = {};
+  const out: Record<string, string | number> = {};
   for (const [key, value] of Object.entries(values)) {
     if (value === '') continue;
-    if (types.get(key) !== 'tel') {
+    const type = types.get(key);
+    if (type === 'tel') {
+      const phone = toE164(value);
+      if (!phone) {
+        throw new Error('Type the phone number with its country code, like +31 6 1234 5678.');
+      }
+      out[key] = phone;
+    } else if (type === 'number') {
+      const amount = Number(value);
+      if (!Number.isFinite(amount) || amount < 0) {
+        throw new Error('Type the amount as a number, like 85000.');
+      }
+      out[key] = amount;
+    } else {
       out[key] = value;
-      continue;
     }
-    const phone = toE164(value);
-    if (!phone) {
-      throw new Error('Type the phone number with its country code, like +31 6 1234 5678.');
-    }
-    out[key] = phone;
   }
   return out;
 }
