@@ -70,7 +70,18 @@ export const SCHEMA_FIELDS: Record<string, SchemaField[]> = {
   PersonJob: [
     { key: 'jobTitle', label: 'Job title' },
     { key: 'employerName', label: 'Employer' },
-    { key: 'employmentType', label: 'Employment type', placeholder: 'full-time' },
+    {
+      key: 'employmentType',
+      label: 'Employment type',
+      options: [
+        { value: 'employee', label: 'Employee' },
+        { value: 'self_employed_with_employees', label: 'Self-employed with employees' },
+        { value: 'self_employed_without_employees', label: 'Self-employed without employees' },
+        { value: 'dependent_contractor', label: 'Dependent contractor' },
+        { value: 'family_worker', label: 'Contributing family worker' },
+        { value: 'other', label: 'Other' },
+      ],
+    },
   ],
   PersonFinancialProfile: [
     {
