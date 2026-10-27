@@ -74,7 +74,7 @@ export function maskedDocument(data: Record<string, unknown> | undefined): strin
 
 export function taxResidency(data: Record<string, unknown> | undefined): string {
   const country = str(data?.taxResidenceCountry);
-  const id = str(data?.taxID);
+  const id = str(data?.taxId);
   if (!country && !id) return '';
   const maskedId = id ? `TIN ····${id.replace(/\s/g, '').slice(-3)}` : '';
   return [country, maskedId].filter(Boolean).join(' · ');
