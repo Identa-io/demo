@@ -1,5 +1,6 @@
 import type { DataSlot } from '@/app/api/data/route';
 import type { ServedRecord } from './geena/partner';
+import { DOCUMENT_TYPE_LABELS } from './schema-fields';
 
 /**
  * Rendering helpers over served slots. The demos never guess slot ids (they are minted at
@@ -66,7 +67,8 @@ export function passengerCode(name: string): string {
 export function maskedDocument(data: Record<string, unknown> | undefined): string {
   const number = str(data?.documentNumber);
   if (!number) return '';
-  const type = str(data?.documentType) || 'Document';
+  const code = str(data?.documentType);
+  const type = DOCUMENT_TYPE_LABELS[code] ?? (code || 'Document');
   const country = str(data?.issuingCountry);
   const tail = number.replace(/\s/g, '').slice(-3);
   return [`${type} ···· ${tail}`, country].filter(Boolean).join(' · ');

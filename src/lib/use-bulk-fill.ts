@@ -61,7 +61,7 @@ function pickFields(target: string, data: Record<string, unknown> | undefined) {
 function withDefaults(target: string, data: Record<string, string>) {
   const out = { ...data };
   if (target === 'PersonBankAccount' && !out.currency) out.currency = 'EUR';
-  if (target === 'PersonIdentityDocument' && !out.documentType) out.documentType = 'Passport';
+  if (target === 'PersonIdentityDocument' && !out.documentType) out.documentType = 'passport';
   return out;
 }
 
