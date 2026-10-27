@@ -27,6 +27,17 @@ const COUNTRIES: { value: string; label: string }[] = [
   { value: 'AT', label: 'Austria' },
 ];
 
+/** Geena's identity document codes, with the label the demo shows for each. */
+export const DOCUMENT_TYPE_LABELS: Record<string, string> = {
+  passport: 'Passport',
+  identity_card: 'Identity card',
+  driving_licence: 'Driving licence',
+  residence_permit: 'Residence permit',
+  travel_document: 'Travel document',
+  visa: 'Visa',
+  other: 'Other',
+};
+
 export const SCHEMA_FIELDS: Record<string, SchemaField[]> = {
   PersonFullName: [
     { key: 'firstName', label: 'First name' },
@@ -40,11 +51,10 @@ export const SCHEMA_FIELDS: Record<string, SchemaField[]> = {
     {
       key: 'documentType',
       label: 'Document type',
-      options: [
-        { value: 'Passport', label: 'Passport' },
-        { value: 'National ID Card', label: 'National ID card' },
-        { value: 'Residence Permit', label: 'Residence permit' },
-      ],
+      options: ['passport', 'identity_card', 'residence_permit'].map((value) => ({
+        value,
+        label: DOCUMENT_TYPE_LABELS[value],
+      })),
     },
     { key: 'documentNumber', label: 'Document number' },
     { key: 'issuingCountry', label: 'Issuing country', options: COUNTRIES },
