@@ -5,7 +5,12 @@ import type { DataSlot } from '@/app/api/data/route';
 import type { CandidateItem, CandidatesResponse } from '@/lib/geena/partner';
 import type { DemoSlug } from '@/lib/demos';
 import { candidateSummary } from '@/lib/records';
-import { LABEL_OPTIONS, SCHEMA_FIELDS, SINGLETON_TARGETS } from '@/lib/schema-fields';
+import {
+  LABEL_OPTIONS,
+  SCHEMA_FIELDS,
+  SINGLETON_TARGETS,
+  recordData,
+} from '@/lib/schema-fields';
 
 /**
  * The in-app fill control for one pending slot, open by default — no extra click between the
@@ -118,6 +123,8 @@ export function SlotFiller({
         return;
       }
       onFilled();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'That did not work — try again.');
     } finally {
       setBusy(false);
     }
@@ -132,7 +139,7 @@ export function SlotFiller({
       }),
     );
 
-  const data = () => Object.fromEntries(Object.entries(values).filter(([, v]) => v !== ''));
+  const data = () => recordData(slot.target ?? '', values);
 
   const setSingleton = () =>
     run(() =>

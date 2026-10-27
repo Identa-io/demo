@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DataSlot } from '@/app/api/data/route';
 import type { CandidateItem, CandidatesResponse } from '@/lib/geena/partner';
 import type { DemoSlug } from './demos';
-import { LABEL_OPTIONS, SCHEMA_FIELDS, SINGLETON_TARGETS } from './schema-fields';
+import { LABEL_OPTIONS, SCHEMA_FIELDS, SINGLETON_TARGETS, recordData } from './schema-fields';
 
 /**
  * One form, one act (all three demos): manages an application's recipient slots as ordinary
@@ -207,10 +207,8 @@ export function useBulkFill(demo: DemoSlug, slots: DataSlot[] | undefined) {
       const target = slot.target!;
       const slotMeta = meta.current[slot.slotId];
       const chosen = selection[slot.slotId] ?? NEW_ITEM;
-      const data = Object.fromEntries(
-        Object.entries(values[slot.slotId] ?? {}).filter(([, v]) => v !== ''),
-      );
       try {
+        const data = recordData(target, values[slot.slotId] ?? {});
         if (slotMeta?.granted) {
           if (isChanged(slot.slotId)) {
             await post('/api/fill/update', { demo, slotId: slot.slotId, data });
