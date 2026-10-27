@@ -33,7 +33,9 @@ export const SCHEMA_FIELDS: Record<string, SchemaField[]> = {
     { key: 'lastName', label: 'Last name' },
   ],
   PersonEmail: [{ key: 'email', label: 'Email', type: 'email' }],
-  PersonPhone: [{ key: 'telephone', label: 'Phone', type: 'tel', placeholder: '+…' }],
+  PersonPhone: [
+    { key: 'telephone', label: 'Phone', type: 'tel', placeholder: '+31 6 1234 5678' },
+  ],
   PersonIdentityDocument: [
     {
       key: 'documentType',
@@ -74,6 +76,44 @@ export const SCHEMA_FIELDS: Record<string, SchemaField[]> = {
     { key: 'taxID', label: 'Tax identification number' },
   ],
 };
+
+/**
+ * A phone number in E.164, the form PersonPhone stores: typed with its country code, the
+ * separators people type dropped (spaces, dashes, dots, brackets, a "(0)" after the code), a
+ * leading 00 read as +. Undefined when what is left is not E.164.
+ */
+export function toE164(typed: string): string | undefined {
+  const compact = typed
+    .replace(/\(0\)/g, '')
+    .replace(/[\s.()-]/g, '')
+    .replace(/^00/, '+');
+  return /^\+[1-9][0-9]{1,14}$/.test(compact) ? compact : undefined;
+}
+
+/**
+ * What a form's values write to a record: empty fields left out, a phone number in E.164.
+ * Throws, saying what to type, when a phone number cannot be read.
+ */
+export function recordData(
+  target: string,
+  values: Record<string, string>,
+): Record<string, string> {
+  const types = new Map((SCHEMA_FIELDS[target] ?? []).map((field) => [field.key, field.type]));
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(values)) {
+    if (value === '') continue;
+    if (types.get(key) !== 'tel') {
+      out[key] = value;
+      continue;
+    }
+    const phone = toE164(value);
+    if (!phone) {
+      throw new Error('Type the phone number with its country code, like +31 6 1234 5678.');
+    }
+    out[key] = phone;
+  }
+  return out;
+}
 
 /**
  * Singleton schemas hold one value per person (a person has one legal name, one birth date):
