@@ -41,7 +41,7 @@ export function addressLines(data: Record<string, unknown> | undefined): string[
   return [
     [str(data.streetAddress), str(data.streetAddressLine2)].filter(Boolean).join(', '),
     [str(data.postalCode), str(data.city)].filter(Boolean).join(' '),
-    [str(data.addressRegion), str(data.addressCountry)].filter(Boolean).join(', '),
+    [str(data.region), str(data.country)].filter(Boolean).join(', '),
   ].filter(Boolean);
 }
 

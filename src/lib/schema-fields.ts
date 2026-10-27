@@ -64,7 +64,7 @@ export const SCHEMA_FIELDS: Record<string, SchemaField[]> = {
     { key: 'streetAddress', label: 'Street address' },
     { key: 'postalCode', label: 'Postal code' },
     { key: 'city', label: 'City' },
-    { key: 'addressCountry', label: 'Country', options: COUNTRIES },
+    { key: 'country', label: 'Country', options: COUNTRIES },
   ],
   PersonBirthDetails: [{ key: 'dateOfBirth', label: 'Date of birth', type: 'date' }],
   PersonJob: [
