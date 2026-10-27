@@ -78,7 +78,7 @@ export const SCHEMA_FIELDS: Record<string, SchemaField[]> = {
   ],
   PersonTaxStatus: [
     { key: 'taxResidenceCountry', label: 'Tax residence country', options: COUNTRIES },
-    { key: 'taxID', label: 'Tax identification number' },
+    { key: 'taxId', label: 'Tax identification number' },
   ],
 };
 
