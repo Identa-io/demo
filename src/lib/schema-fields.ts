@@ -11,6 +11,8 @@ export interface SchemaField {
   placeholder?: string;
   /** When set, the field renders as a pick from these — a short list beats a free field. */
   options?: { value: string; label: string }[];
+  /** Written without spaces and in upper case: Geena stores an IBAN in electronic format. */
+  compact?: boolean;
 }
 
 /** The demo's market: the EU, no home bias. Values are ISO codes — what the schema stores. */
@@ -94,7 +96,7 @@ export const SCHEMA_FIELDS: Record<string, SchemaField[]> = {
   ],
   PersonBankAccount: [
     { key: 'bankName', label: 'Bank' },
-    { key: 'accountNumber', label: 'Account number (IBAN)' },
+    { key: 'accountNumber', label: 'Account number (IBAN)', compact: true },
     { key: 'currency', label: 'Currency', placeholder: 'EUR' },
   ],
   PersonTaxStatus: [
@@ -118,18 +120,18 @@ export function toE164(typed: string): string | undefined {
 
 /**
  * What a form's values write to a record: empty fields left out, a phone number in E.164, an
- * amount as a number (the schema types it so, and refuses one below zero). Throws, saying what
- * to type, when a phone number or an amount cannot be read.
+ * amount as a number (the schema types it so, and refuses one below zero), an IBAN without spaces
+ * and in upper case. Throws, saying what to type, when a phone number or an amount cannot be read.
  */
 export function recordData(
   target: string,
   values: Record<string, string>,
 ): Record<string, string | number> {
-  const types = new Map((SCHEMA_FIELDS[target] ?? []).map((field) => [field.key, field.type]));
+  const fields = new Map((SCHEMA_FIELDS[target] ?? []).map((field) => [field.key, field]));
   const out: Record<string, string | number> = {};
   for (const [key, value] of Object.entries(values)) {
     if (value === '') continue;
-    const type = types.get(key);
+    const type = fields.get(key)?.type;
     if (type === 'tel') {
       const phone = toE164(value);
       if (!phone) {
@@ -142,6 +144,8 @@ export function recordData(
         throw new Error('Type the amount as a number, like 85000.');
       }
       out[key] = amount;
+    } else if (fields.get(key)?.compact) {
+      out[key] = value.replace(/\s+/g, '').toUpperCase();
     } else {
       out[key] = value;
     }
