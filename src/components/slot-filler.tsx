@@ -74,6 +74,9 @@ export function SlotFiller({
 
   const isFile = slot.kind === 'PERSONAL_FILES';
   const singleton = !!slot.target && SINGLETON_TARGETS.has(slot.target);
+  // A singleton the demo has no form for (PersonNationality: a list it cannot type) is shared as
+  // it stands: the person's one record, never a second.
+  const valueForm = singleton && fields.length > 0;
 
   const load = useCallback(async () => {
     if (updateMode) return; // the update form starts from the served record, nothing to list
@@ -311,7 +314,7 @@ export function SlotFiller({
             </>
           )}
         </div>
-      ) : singleton ? (
+      ) : valueForm ? (
         candidates === null ? (
           <p className="mt-2 text-[12px] text-[color:var(--muted)]">Checking your vault…</p>
         ) : (
@@ -370,71 +373,73 @@ export function SlotFiller({
             </ul>
           ) : null}
 
-          <div
-            className={
-              candidates?.length ? 'mt-3 border-t border-[color:var(--line)] pt-2.5' : 'mt-2'
-            }
-          >
-            {candidates !== null && (
-              <p className="field-label">
-                {/* Cardinality decides the verb (slot-cardinality): a single slot's new value
-                    REPLACES the shared one server-side; only a multiple slot accrues. */}
-                {!candidates.length
-                  ? 'Add it'
-                  : !slot.multiple && candidates.some((c) => c.granted)
-                    ? 'Or replace it with a new one'
-                    : 'Or add another'}
-              </p>
-            )}
-            <div className="mt-1.5 grid gap-2 sm:grid-cols-2">
-              {labelOptions && !customLabel ? (
-                <div className="flex flex-wrap items-center gap-1.5 sm:col-span-2">
-                  {labelOptions.map((option) => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => setLabel(option)}
-                      aria-pressed={label === option}
-                      className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
-                        label === option
-                          ? 'border-[color:var(--accent)] font-semibold text-[color:var(--accent)]'
-                          : 'border-[color:var(--line)] text-[color:var(--muted)] hover:border-[color:var(--accent)]'
-                      }`}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCustomLabel(true);
-                      setLabel('');
-                    }}
-                    className="rounded-full border border-dashed border-[color:var(--line)] px-2.5 py-1 text-[11px] text-[color:var(--muted)] hover:border-[color:var(--accent)]"
-                  >
-                    Other…
-                  </button>
-                </div>
-              ) : (
-                <input
-                  value={label}
-                  onChange={(e) => setLabel(e.target.value)}
-                  placeholder="Label — how you find it later"
-                  aria-label="Label"
-                  autoFocus={customLabel}
-                  className="rounded-lg border border-[color:var(--line)] px-2.5 py-1.5 text-[12.5px] sm:col-span-2"
-                />
+          {!singleton && (
+            <div
+              className={
+                candidates?.length ? 'mt-3 border-t border-[color:var(--line)] pt-2.5' : 'mt-2'
+              }
+            >
+              {candidates !== null && (
+                <p className="field-label">
+                  {/* Cardinality decides the verb (slot-cardinality): a single slot's new value
+                      REPLACES the shared one server-side; only a multiple slot accrues. */}
+                  {!candidates.length
+                    ? 'Add it'
+                    : !slot.multiple && candidates.some((c) => c.granted)
+                      ? 'Or replace it with a new one'
+                      : 'Or add another'}
+                </p>
               )}
-              {fieldInputs}
-              <button
-                onClick={() => void create()}
-                disabled={busy || empty}
-                className="btn-primary !px-3 !py-1.5 !text-[12px] sm:col-span-2"
-              >
-                {busy ? 'Saving…' : 'Save to vault & share'}
-              </button>
+              <div className="mt-1.5 grid gap-2 sm:grid-cols-2">
+                {labelOptions && !customLabel ? (
+                  <div className="flex flex-wrap items-center gap-1.5 sm:col-span-2">
+                    {labelOptions.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => setLabel(option)}
+                        aria-pressed={label === option}
+                        className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+                          label === option
+                            ? 'border-[color:var(--accent)] font-semibold text-[color:var(--accent)]'
+                            : 'border-[color:var(--line)] text-[color:var(--muted)] hover:border-[color:var(--accent)]'
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomLabel(true);
+                        setLabel('');
+                      }}
+                      className="rounded-full border border-dashed border-[color:var(--line)] px-2.5 py-1 text-[11px] text-[color:var(--muted)] hover:border-[color:var(--accent)]"
+                    >
+                      Other…
+                    </button>
+                  </div>
+                ) : (
+                  <input
+                    value={label}
+                    onChange={(e) => setLabel(e.target.value)}
+                    placeholder="Label — how you find it later"
+                    aria-label="Label"
+                    autoFocus={customLabel}
+                    className="rounded-lg border border-[color:var(--line)] px-2.5 py-1.5 text-[12.5px] sm:col-span-2"
+                  />
+                )}
+                {fieldInputs}
+                <button
+                  onClick={() => void create()}
+                  disabled={busy || empty}
+                  className="btn-primary !px-3 !py-1.5 !text-[12px] sm:col-span-2"
+                >
+                  {busy ? 'Saving…' : 'Save to vault & share'}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </>
       )}
 

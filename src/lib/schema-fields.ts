@@ -68,6 +68,17 @@ export const SCHEMA_FIELDS: Record<string, SchemaField[]> = {
     { key: 'city', label: 'City' },
     { key: 'country', label: 'Country', options: COUNTRIES },
   ],
+  PersonSex: [
+    {
+      key: 'sex',
+      label: 'Sex',
+      options: [
+        { value: 'male', label: 'Male' },
+        { value: 'female', label: 'Female' },
+        { value: 'other', label: 'Other' },
+      ],
+    },
+  ],
   PersonBirthDetails: [{ key: 'dateOfBirth', label: 'Date of birth', type: 'date' }],
   PersonJob: [
     { key: 'jobTitle', label: 'Job title' },
@@ -157,14 +168,16 @@ export function recordData(
  * Singleton schemas hold one value per person (a person has one legal name, one birth date):
  * picking between instances makes no sense, so the filler shows a value form instead — under
  * the hood the existing (possibly empty starter) document is attached and written, or created
- * when none exists.
+ * when none exists. The set is Geena's person singletons; a job is not one, since a person can
+ * hold several.
  */
 export const SINGLETON_TARGETS = new Set([
   'PersonFullName',
+  'PersonSex',
   'PersonBirthDetails',
+  'PersonNationality',
   'PersonTaxStatus',
   'PersonFinancialProfile',
-  'PersonJob',
 ]);
 
 /**
@@ -177,4 +190,5 @@ export const LABEL_OPTIONS: Record<string, string[]> = {
   PersonAddress: ['Home', 'Work', 'Second home'],
   PersonBankAccount: ['Main account', 'Savings', 'Joint'],
   PersonIdentityDocument: ['Passport', 'National ID'],
+  PersonJob: ['Current job', 'Previous job'],
 };
